@@ -10,7 +10,6 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.UUID;
 
-import static com.levviata.lbob.LeviathanPlayerAttributes.LOGGER;
 import static com.levviata.lbob.PlayerUseBobblehead.*;
 
 public class LNBTMagic {
@@ -67,64 +66,86 @@ public class LNBTMagic {
         // i write to the player data with my desired tags, this is persistent as its stored to the disk (i think)
         NBTTagCompound playerData = player.getEntityData();
 
+        addTags(playerData);
+
+        statsAndPerks(player);
+    }
+
+    private void addTags(NBTTagCompound playerDataIn) {
         // comes with stat increases then has perks at X amount consumed, usually 5 or 10
         if (usedStrengthBob) { // exponential, might get insane
-            int damageFormula = (int) (playerData.getInteger(ATTACK_DAMAGE_TAG) * 1.5F); // multiplies damage by 1.5, 50% damage increase for melee
+            int damageFormula = (int) (playerDataIn.getInteger(ATTACK_DAMAGE_TAG) * 1.5F); // multiplies damage by 1.5, 50% damage increase for melee
 
-            playerData.setInteger(ATTACK_DAMAGE_TAG, damageFormula);
+            playerDataIn.setInteger(ATTACK_DAMAGE_TAG, damageFormula);
 
             usedStrengthBob = false;
         }
 
-        if (usedPersistanceBob) {
-            playerData.setInteger(GUN_ACCURACY_TAG, playerData.getInteger(GUN_ACCURACY_TAG) + 1); // reduces spread
+        if (usedPerceptionBob) {
+            playerDataIn.setInteger(GUN_ACCURACY_TAG, playerDataIn.getInteger(GUN_ACCURACY_TAG) + 1); // reduces spread
 
-            if (playerData.getInteger(GUN_ACCURACY_TAG) == 5) {
-                playerData.setBoolean(NIGHT_VISION_TAG, true); // when reaching 5 copiess
+            if (playerDataIn.getInteger(GUN_ACCURACY_TAG) == 5) {
+                playerDataIn.setBoolean(NIGHT_VISION_TAG, true); // when reaching 5 copiess
             }
 
-            usedPersistanceBob = false;
+            usedPerceptionBob = false;
         }
 
         if (usedEnduranceBob) {
-            playerData.setInteger(MAX_HEALTH_TAG, playerData.getInteger(MAX_HEALTH_TAG) + 4); // +2 full hearts
+            playerDataIn.setInteger(MAX_HEALTH_TAG, playerDataIn.getInteger(MAX_HEALTH_TAG) + 4); // +2 full hearts
 
             usedEnduranceBob = false;
         }
 
         if (usedCharismaBob) { // plot armor
-            playerData.setInteger(ARMOR_TAG, playerData.getInteger(ARMOR_TAG) + 2);
-            playerData.setInteger(ARMOR_TOUGHNESS_TAG, playerData.getInteger(ARMOR_TOUGHNESS_TAG) + 1);
+            playerDataIn.setInteger(ARMOR_TAG, playerDataIn.getInteger(ARMOR_TAG) + 2);
+            playerDataIn.setInteger(ARMOR_TOUGHNESS_TAG, playerDataIn.getInteger(ARMOR_TOUGHNESS_TAG) + 1);
 
             usedCharismaBob = false;
         }
 
         if (usedIntelligenceBob) { // increases gun damage
-            playerData.setInteger(GUN_DAMAGE_TAG, playerData.getInteger(GUN_DAMAGE_TAG) + 2);
+            playerDataIn.setInteger(GUN_DAMAGE_TAG, playerDataIn.getInteger(GUN_DAMAGE_TAG) + 2);
 
             usedIntelligenceBob = false;
         }
 
 
         if (usedAgilityBob) { // percentage
-            playerData.setFloat(MOVEMENT_SPEED_TAG, playerData.getFloat(MOVEMENT_SPEED_TAG) + 0.05F); // +5% movement speed
+            playerDataIn.setFloat(MOVEMENT_SPEED_TAG, playerDataIn.getFloat(MOVEMENT_SPEED_TAG) + 0.05F); // +5% movement speed
 
             // todo keybind for tweaking current move speed after acquiring 5 agility bob
 
             usedAgilityBob = false;
         }
 
-        if (usedLuckBob) { // increases the chance of reloading a magazine for free,
-            playerData.setInteger(LUCK_TAG, playerData.getInteger(LUCK_TAG) + 1);
+        if (usedLuckBob) { // increases the chance of reloading rounds for free,
+            playerDataIn.setInteger(LUCK_TAG, playerDataIn.getInteger(LUCK_TAG) + 1);
 
             usedAgilityBob = false;
         }
+    }
 
-        // i get the tags i have put and handle the attribute modification, as the NBT tags are written to the player's data, its persistent and will (hopefully) be applied as long the game is running
-        for (String tag : player.getTags()) {
-            if (tag.equals(MAX_HEALTH_TAG)) {
-                player.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).applyModifier(new AttributeModifier(MAX_HEALTH_UUID, nameIn, 1, 0));
+    private void statsAndPerks(EntityPlayer playerIn) {
+        // i get the tags from addTags() and handle the attribute modification or perks. The NBT tags are written to the player's data, its persistent and will (hopefully) be applied as long the game is running
+        for (String tag : playerIn.getTags()) {
+            // strength
+            if (tag.equals(ATTACK_DAMAGE_TAG)) {
+                playerIn.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).applyModifier(new AttributeModifier(MAX_HEALTH_UUID, nameIn, 1, 0));
             }
+            //
+
+            // perception
+            if (tag.equals(NIGHT_VISION_TAG)) {
+                playerIn.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).applyModifier(new AttributeModifier(MAX_HEALTH_UUID, nameIn, 1, 0));
+            }
+            //
+
+            // endurance
+            if (tag.equals(MAX_HEALTH_TAG)) {
+                playerIn.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).applyModifier(new AttributeModifier(MAX_HEALTH_UUID, nameIn, 1, 0));
+            }
+            //
         }
     }
 }
