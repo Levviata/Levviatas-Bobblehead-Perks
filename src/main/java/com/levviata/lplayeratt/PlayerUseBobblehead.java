@@ -44,7 +44,7 @@ public class PlayerUseBobblehead {
         // config options added because why not
         if (stack.getItem().equals(key.getItem()) && player.isSneaking()) {
             LOGGER.info("i got the iron_ingot");
-            SharedMonsterAttributes
+
         }
     }
 }
