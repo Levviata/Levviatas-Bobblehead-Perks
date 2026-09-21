@@ -15,10 +15,11 @@ import static com.levviata.lbob.LeviathanPlayerAttributes.*;
 @Mod.EventBusSubscriber(modid = Tags.MOD_ID)
 public class PlayerUseBobblehead {
     public static boolean usedStrengthBob = false;
-    public static boolean usedNightVisionBob = false;
-    public static boolean usedMaxHealthBob = false;
-    public static boolean usedResistanceBob = false;
-    public static boolean usedMovementSpeedBob = false;
+    public static boolean usedPersistanceBob = false;
+    public static boolean usedEnduranceBob = false;
+    public static boolean usedCharismaBob = false;
+    public static boolean usedIntelligenceBob = false;
+    public static boolean usedAgilityBob = false;
     public static boolean usedLuckBob = false;
 
     @SubscribeEvent
@@ -46,17 +47,40 @@ public class PlayerUseBobblehead {
             LOGGER.info("conditions passed");
             switch(bob.getItemDamage()){
                 case 0: {
-                    LOGGER.info("hi again");
+                    LOGGER.info("used strength bob");
                     usedStrengthBob = true;
                     stack.setCount(stack.getCount() - 1);
                     break;
                 }
                 case 2: {
-                    usedNightVisionBob = true;
+                    usedPersistanceBob = true; // persistance
+                    stack.setCount(stack.getCount() - 1);
                     break;
                 }
                 case 3: {
-
+                    usedEnduranceBob = true;
+                    stack.setCount(stack.getCount() - 1);
+                    break;
+                }
+                case 4: {
+                    usedCharismaBob = true;
+                    stack.setCount(stack.getCount() - 1);
+                    break;
+                }
+                case 5: {
+                    usedIntelligenceBob = true;
+                    stack.setCount(stack.getCount() - 1);
+                    break;
+                }
+                case 6: {
+                    usedAgilityBob = true; // agility
+                    stack.setCount(stack.getCount() - 1);
+                    break;
+                }
+                case 8: {
+                    usedLuckBob = true;
+                    stack.setCount(stack.getCount() - 1);
+                    break;
                 }
             }
 
