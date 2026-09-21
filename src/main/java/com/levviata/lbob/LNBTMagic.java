@@ -42,6 +42,9 @@ public class LNBTMagic {
     public static final String MOVEMENT_SPEED_TAG = "Lmovement_speed";
     public static final String FLYING_SPEED_TAG = "Lflying_speed";
     public static final String ATTACK_DAMAGE_TAG = "Lattack_damage";
+    public static final String GUN_ACCURACY_TAG = "Lgun_accuracy";
+    public static final String NIGHT_VISION_TAG = "Lnight_vision";
+    public static final String GUN_DAMAGE_TAG = "Lgun_damage";
     public static final String ATTACK_SPEED_TAG = "Lattack_speed";
     public static final String ARMOR_TAG = "Larmor";
     public static final String ARMOR_TOUGHNESS_TAG = "Larmor_toughness";
@@ -60,15 +63,27 @@ public class LNBTMagic {
         }
 
         EntityPlayer player = mc.player;
+
         // i write to the player data with my desired tags, this is persistent as its stored to the disk (i think)
         NBTTagCompound playerData = player.getEntityData();
 
-        if (usedStrengthBob) {
-            int damageFormula = (int) (playerData.getInteger(ATTACK_DAMAGE_TAG) * 0.1F); // increase the damage by 10%. what happen when 0? 0 x 0.1f, 0 oh ok
+        // comes with stat increases then has perks at X amount consumed, usually 5 or 10
+        if (usedStrengthBob) { // exponential, might get insane
+            int damageFormula = (int) (playerData.getInteger(ATTACK_DAMAGE_TAG) * 1.5F); // multiplies damage by 1.5, 50% damage increase for melee
 
             playerData.setInteger(ATTACK_DAMAGE_TAG, damageFormula);
 
-            usedEnduranceBob = false;
+            usedStrengthBob = false;
+        }
+
+        if (usedPersistanceBob) {
+            playerData.setInteger(GUN_ACCURACY_TAG, playerData.getInteger(GUN_ACCURACY_TAG) + 1); // reduces spread
+
+            if (playerData.getInteger(GUN_ACCURACY_TAG) == 5) {
+                playerData.setBoolean(NIGHT_VISION_TAG, true); // when reaching 5 copiess
+            }
+
+            usedPersistanceBob = false;
         }
 
         if (usedEnduranceBob) {
@@ -77,10 +92,32 @@ public class LNBTMagic {
             usedEnduranceBob = false;
         }
 
-        if (usedEnduranceBob) {
-            playerData.setInteger(MAX_HEALTH_TAG, playerData.getInteger(MAX_HEALTH_TAG) + 4); // +2 full hearts
+        if (usedCharismaBob) { // plot armor
+            playerData.setInteger(ARMOR_TAG, playerData.getInteger(ARMOR_TAG) + 2);
+            playerData.setInteger(ARMOR_TOUGHNESS_TAG, playerData.getInteger(ARMOR_TOUGHNESS_TAG) + 1);
 
-            usedEnduranceBob = false;
+            usedCharismaBob = false;
+        }
+
+        if (usedIntelligenceBob) { // increases gun damage
+            playerData.setInteger(GUN_DAMAGE_TAG, playerData.getInteger(GUN_DAMAGE_TAG) + 2);
+
+            usedIntelligenceBob = false;
+        }
+
+
+        if (usedAgilityBob) { // percentage
+            playerData.setFloat(MOVEMENT_SPEED_TAG, playerData.getFloat(MOVEMENT_SPEED_TAG) + 0.05F); // +5% movement speed
+
+            // todo keybind for tweaking current move speed after acquiring 5 agility bob
+
+            usedAgilityBob = false;
+        }
+
+        if (usedLuckBob) { // increases the chance of reloading a magazine for free,
+            playerData.setInteger(LUCK_TAG, playerData.getInteger(LUCK_TAG) + 1);
+
+            usedAgilityBob = false;
         }
 
         // i get the tags i have put and handle the attribute modification, as the NBT tags are written to the player's data, its persistent and will (hopefully) be applied as long the game is running
