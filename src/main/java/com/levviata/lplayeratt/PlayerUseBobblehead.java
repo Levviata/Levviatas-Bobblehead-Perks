@@ -18,31 +18,55 @@ import static com.levviata.lplayeratt.LeviathanPlayerAttributes.*;
 // this class provides flags that are used in LNBTMagic
 @Mod.EventBusSubscriber(modid = Tags.MOD_ID)
 public class PlayerUseBobblehead {
-
-    private boolean usedMaxHealthBob = false;
-    private boolean usedFollowRangeBob = false;
-    private boolean usedKnockbackResistanceBob = false;
-    private boolean usedMovementSpeedBob = false;
-    private boolean usedFlyingSpeedBob = false;
-    private boolean usedAttackDamageBob = false;
-    private boolean usedAttackSpeedBob = false;
-    private boolean usedArmorBob = false;
-    private boolean usedArmorToughnessBob = false;
-    private boolean usedLuckBob = false;
+    public static boolean usedStrengthBob = false;
+    public static boolean usedNightVisionBob = false;
+    public static boolean usedMaxHealthBob = false;
+    public static boolean usedResistanceBob = false;
+    public static boolean usedMovementSpeedBob = false;
+    public static boolean usedLuckBob = false;
 
     @SubscribeEvent
     public void use(PlayerInteractEvent.RightClickItem event) {
-        ItemStack key = new ItemStack(Objects.requireNonNull(Item.getByNameOrId("minecraft:iron_ingot")));
+        //ItemStack bob = new ItemStack(Objects.requireNonNull(Item.getByNameOrId("hbm:bobblehead")));
+        ItemStack bob = new ItemStack(Objects.requireNonNull(Item.getByNameOrId("minecraft:iron_ingot")));
+
         LOGGER.info("Hi");
-        LOGGER.info(key);
+        LOGGER.info(bob);
         String s = String.valueOf(event.getItemStack().getItem().getRegistryName());
         LOGGER.info(s);
+
         ItemStack stack = event.getItemStack();
         EntityPlayer player = event.getEntityPlayer();
 
         // the goal is when a hbm:bobblehead is crouch right-clicked, I remove the item and I set a flag as true which is handled by LNBTMagic.class
-        // config options added because why not
-        if (stack.getItem().equals(key.getItem()) && player.isSneaking()) {
+        // 1 strength
+        // 2 toggable night vision, keybind
+        // 3 max health
+        // 4 resistance
+        // 5 random enchanment book
+        // 6 movement speed
+        // 7 luck
+        if (stack.getItem().equals(bob.getItem())  && player.isSneaking()) {
+            LOGGER.info("conditions passed");
+            switch(bob.getItemDamage()){
+                case 0: {
+                    LOGGER.info("hi again");
+                    usedStrengthBob = true;
+                    stack.setCount(stack.getCount() - 1);
+                    break;
+                }
+                case 2: {
+                    usedNightVisionBob = true;
+                    break;
+                }
+                case 3: {
+
+                }
+            }
+
+
+        }
+        if (stack.getItem().equals(bob.getItem()) && bob.getItemDamage() == 3 && player.isSneaking()) {
             LOGGER.info("i got the iron_ingot");
 
         }
