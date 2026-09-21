@@ -1,18 +1,17 @@
-package com.levviata.lplayeratt;
+package com.levviata.lbob;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.UUID;
 
-import static com.levviata.lplayeratt.LeviathanPlayerAttributes.LOGGER;
-import static com.levviata.lplayeratt.PlayerUseBobblehead.*;
+import static com.levviata.lbob.LeviathanPlayerAttributes.LOGGER;
+import static com.levviata.lbob.PlayerUseBobblehead.*;
 
 public class LNBTMagic {
     //vanilla uuids
@@ -62,9 +61,9 @@ public class LNBTMagic {
 
         EntityPlayer player = mc.player;
 
-        if (!player.getTags().contains(MAX_HEALTH_TAG) && usedHealthBob) {
+        if (!player.getTags().contains(MAX_HEALTH_TAG) && usedMaxHealthBob) {
             LOGGER.info("player doesn't have {}, im adding it", MAX_HEALTH_TAG);
-            NBTTagCompound maxHealth = event.getEntityPlayer().getEntityData();
+            NBTTagCompound maxHealth = player.getEntityData();
             // set an integer value adding 1
             maxHealth.setInteger(MAX_HEALTH_TAG, maxHealth.getInteger(MAX_HEALTH_TAG) + 1);
         }

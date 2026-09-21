@@ -1,19 +1,15 @@
-package com.levviata.lplayeratt;
+package com.levviata.lbob;
 
-import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import scala.collection.parallel.ParIterableLike;
 
 import java.util.Objects;
-import java.util.UUID;
 
-import static com.levviata.lplayeratt.LeviathanPlayerAttributes.*;
+import static com.levviata.lbob.LeviathanPlayerAttributes.*;
 
 // this class provides flags that are used in LNBTMagic
 @Mod.EventBusSubscriber(modid = Tags.MOD_ID)
