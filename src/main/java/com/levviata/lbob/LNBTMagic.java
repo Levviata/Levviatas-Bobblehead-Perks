@@ -60,14 +60,30 @@ public class LNBTMagic {
         }
 
         EntityPlayer player = mc.player;
+        // i write to the player data with my desired tags, this is persistent as its stored to the disk (i think)
+        NBTTagCompound playerData = player.getEntityData();
 
-        if (!player.getTags().contains(MAX_HEALTH_TAG) && usedMaxHealthBob) {
-            LOGGER.info("player doesn't have {}, im adding it", MAX_HEALTH_TAG);
-            NBTTagCompound maxHealth = player.getEntityData();
-            // set an integer value adding 1
-            maxHealth.setInteger(MAX_HEALTH_TAG, maxHealth.getInteger(MAX_HEALTH_TAG) + 1);
+        if (usedStrengthBob) {
+            int damageFormula = (int) (playerData.getInteger(ATTACK_DAMAGE_TAG) * 0.1F); // increase the damage by 10%. what happen when 0? 0 x 0.1f, 0 oh ok
+
+            playerData.setInteger(ATTACK_DAMAGE_TAG, damageFormula);
+
+            usedEnduranceBob = false;
         }
 
+        if (usedEnduranceBob) {
+            playerData.setInteger(MAX_HEALTH_TAG, playerData.getInteger(MAX_HEALTH_TAG) + 4); // +2 full hearts
+
+            usedEnduranceBob = false;
+        }
+
+        if (usedEnduranceBob) {
+            playerData.setInteger(MAX_HEALTH_TAG, playerData.getInteger(MAX_HEALTH_TAG) + 4); // +2 full hearts
+
+            usedEnduranceBob = false;
+        }
+
+        // i get the tags i have put and handle the attribute modification, as the NBT tags are written to the player's data, its persistent and will (hopefully) be applied as long the game is running
         for (String tag : player.getTags()) {
             if (tag.equals(MAX_HEALTH_TAG)) {
                 player.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).applyModifier(new AttributeModifier(MAX_HEALTH_UUID, nameIn, 1, 0));
