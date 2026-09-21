@@ -15,7 +15,7 @@ import static com.levviata.lbob.LeviathanPlayerAttributes.*;
 @Mod.EventBusSubscriber(modid = Tags.MOD_ID)
 public class PlayerUseBobblehead {
     public static boolean usedStrengthBob = false;
-    public static boolean usedPersistanceBob = false;
+    public static boolean usedPerceptionBob = false;
     public static boolean usedEnduranceBob = false;
     public static boolean usedCharismaBob = false;
     public static boolean usedIntelligenceBob = false;
@@ -25,7 +25,7 @@ public class PlayerUseBobblehead {
     @SubscribeEvent
     public void use(PlayerInteractEvent.RightClickItem event) {
         //ItemStack bob = new ItemStack(Objects.requireNonNull(Item.getByNameOrId("hbm:bobblehead")));
-        ItemStack bob = new ItemStack(Objects.requireNonNull(Item.getByNameOrId("minecraft:iron_ingot")));
+        ItemStack bob = new ItemStack(Objects.requireNonNull(Item.getByNameOrId("minecraft:dye"))); // test
 
         LOGGER.info("Hi");
         LOGGER.info(bob);
@@ -36,13 +36,6 @@ public class PlayerUseBobblehead {
         EntityPlayer player = event.getEntityPlayer();
 
         // the goal is when a hbm:bobblehead is crouch right-clicked, I remove the item and I set a flag as true which is handled by LNBTMagic.class
-        // 1 strength
-        // 2 toggable night vision, keybind
-        // 3 max health
-        // 4 resistance
-        // 5 random enchanment book
-        // 6 movement speed
-        // 7 luck
         if (stack.getItem().equals(bob.getItem())  && player.isSneaking()) {
             LOGGER.info("conditions passed");
             switch(bob.getItemDamage()){
@@ -53,7 +46,7 @@ public class PlayerUseBobblehead {
                     break;
                 }
                 case 2: {
-                    usedPersistanceBob = true; // persistance
+                    usedPerceptionBob = true;
                     stack.setCount(stack.getCount() - 1);
                     break;
                 }
@@ -73,7 +66,7 @@ public class PlayerUseBobblehead {
                     break;
                 }
                 case 6: {
-                    usedAgilityBob = true; // agility
+                    usedAgilityBob = true;
                     stack.setCount(stack.getCount() - 1);
                     break;
                 }
@@ -86,9 +79,10 @@ public class PlayerUseBobblehead {
 
 
         }
+        /*
         if (stack.getItem().equals(bob.getItem()) && bob.getItemDamage() == 3 && player.isSneaking()) {
             LOGGER.info("i got the iron_ingot");
 
-        }
+        }*/
     }
 }
