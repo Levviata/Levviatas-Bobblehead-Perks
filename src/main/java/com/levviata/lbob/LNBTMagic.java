@@ -35,14 +35,24 @@ public class LNBTMagic {
             UUID.fromString("18b4f6d0-8ec1-4cba-a57e-52d6f83a7808");
     private static final String nameIn = "Lev Attribute Modifier";
 
-    public static final String MAX_HEALTH_TAG = "Lmax_health";
+    // strength
+    public static final String ATTACK_DAMAGE_TAG = "Lattack_damage"; // int
+    public static final String ATTACK_DAMAGE_BONUS_TAG = "Lattack_damage_bonus"; // boolean
+
+    // perception
+    public static final String GUN_ACCURACY_TAG = "Lgun_accuracy"; // int
+    public static final String NIGHT_VISION_TAG = "Lnight_vision"; // boolean
+
+    // endurance
+    public static final String MAX_HEALTH_TAG = "Lmax_health"; // int
+    public static final String MAX_HEALTH_BONUS_TAG = "Lmax_health_bonus"; // boolean
+
     public static final String FOLLOW_RANGE_TAG = "Lfollow_range";
     public static final String KNOCKBACK_RESISTANCE_TAG = "Lknockback_resistance";
     public static final String MOVEMENT_SPEED_TAG = "Lmovement_speed";
     public static final String FLYING_SPEED_TAG = "Lflying_speed";
-    public static final String ATTACK_DAMAGE_TAG = "Lattack_damage";
-    public static final String GUN_ACCURACY_TAG = "Lgun_accuracy";
-    public static final String NIGHT_VISION_TAG = "Lnight_vision";
+
+
     public static final String GUN_DAMAGE_TAG = "Lgun_damage";
     public static final String ATTACK_SPEED_TAG = "Lattack_speed";
     public static final String ARMOR_TAG = "Larmor";
@@ -73,10 +83,15 @@ public class LNBTMagic {
 
     private void addTags(NBTTagCompound playerDataIn) {
         // comes with stat increases then has perks at X amount consumed, usually 5 or 10
+        // total fallout bobbleheads is 7
         if (usedStrengthBob) { // exponential, might get insane
             int damageFormula = (int) (playerDataIn.getInteger(ATTACK_DAMAGE_TAG) * 1.5F); // multiplies damage by 1.5, 50% damage increase for melee
 
             playerDataIn.setInteger(ATTACK_DAMAGE_TAG, damageFormula);
+
+            if (playerDataIn.getInteger(ATTACK_DAMAGE_TAG) == 5) { // perk
+                playerDataIn.setBoolean(ATTACK_DAMAGE_BONUS_TAG, true);
+            }
 
             usedStrengthBob = false;
         }
@@ -84,8 +99,8 @@ public class LNBTMagic {
         if (usedPerceptionBob) {
             playerDataIn.setInteger(GUN_ACCURACY_TAG, playerDataIn.getInteger(GUN_ACCURACY_TAG) + 1); // reduces spread
 
-            if (playerDataIn.getInteger(GUN_ACCURACY_TAG) == 5) {
-                playerDataIn.setBoolean(NIGHT_VISION_TAG, true); // when reaching 5 copiess
+            if (playerDataIn.getInteger(GUN_ACCURACY_TAG) == 5) { // perk
+                playerDataIn.setBoolean(NIGHT_VISION_TAG, true);
             }
 
             usedPerceptionBob = false;
@@ -93,6 +108,10 @@ public class LNBTMagic {
 
         if (usedEnduranceBob) {
             playerDataIn.setInteger(MAX_HEALTH_TAG, playerDataIn.getInteger(MAX_HEALTH_TAG) + 4); // +2 full hearts
+
+            if (playerDataIn.getInteger(MAX_HEALTH_TAG) == 5) { // perk
+                playerDataIn.setBoolean(MAX_HEALTH_BONUS_TAG, true);
+            }
 
             usedEnduranceBob = false;
         }
@@ -129,15 +148,19 @@ public class LNBTMagic {
     private void statsAndPerks(EntityPlayer playerIn) {
         // i get the tags from addTags() and handle the attribute modification or perks. The NBT tags are written to the player's data, its persistent and will (hopefully) be applied as long the game is running
         for (String tag : playerIn.getTags()) {
+
             // strength
             if (tag.equals(ATTACK_DAMAGE_TAG)) {
-                playerIn.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).applyModifier(new AttributeModifier(MAX_HEALTH_UUID, nameIn, 1, 0));
+                playerIn.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).applyModifier(new AttributeModifier(ATTACK_DAMAGE_MODIFIER, nameIn, 1, 0));
             }
             //
 
             // perception
-            if (tag.equals(NIGHT_VISION_TAG)) {
-                playerIn.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).applyModifier(new AttributeModifier(MAX_HEALTH_UUID, nameIn, 1, 0));
+            // todo gun accuracy stat logic
+
+            // perk
+            if (tag.equals(NIGHT_VISION_TAG) && playerIn.getEntityData().getBoolean(NIGHT_VISION_TAG)) { // if i found NIGHT VISION TAG and its true
+                playerIn.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).applyModifier(new AttributeModifier(MAX_HEALTH_UUID, nameIn, playerIn.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH) + 1, 0));
             }
             //
 
@@ -146,6 +169,13 @@ public class LNBTMagic {
                 playerIn.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).applyModifier(new AttributeModifier(MAX_HEALTH_UUID, nameIn, 1, 0));
             }
             //
+
+            // charisma
+            // two stats
+            if (tag.equals(ARMOR_TAG)) {
+                playerIn.getEntityAttribute(SharedMonsterAttributes.ARMOR).applyModifier(new AttributeModifier(ARMOR_UUID, nameIn, 1, 0));
+            }
+
         }
     }
 }
