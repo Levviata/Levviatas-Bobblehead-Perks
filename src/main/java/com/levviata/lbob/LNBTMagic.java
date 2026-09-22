@@ -3,6 +3,8 @@ package com.levviata.lbob;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
+import net.minecraft.entity.ai.attributes.IAttribute;
+import net.minecraft.entity.ai.attributes.IAttributeInstance;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -45,7 +47,6 @@ public class LNBTMagic {
 
     // endurance
     public static final String MAX_HEALTH_TAG = "Lmax_health"; // int
-    public static final String MAX_HEALTH_BONUS_TAG = "Lmax_health_bonus"; // boolean
 
     public static final String FOLLOW_RANGE_TAG = "Lfollow_range";
     public static final String KNOCKBACK_RESISTANCE_TAG = "Lknockback_resistance";
@@ -78,60 +79,64 @@ public class LNBTMagic {
 
         addTags(playerData);
 
-        statsAndPerks(player);
+        statsAndPerks(player, playerData);
     }
 
-    private void addTags(NBTTagCompound playerDataIn) {
+    private void addTags(NBTTagCompound pDataIn) {
         // comes with stat increases then has perks at X amount consumed, usually 5 or 10
         // total fallout bobbleheads is 7
         if (usedStrengthBob) { // exponential, might get insane
-            int damageFormula = (int) (playerDataIn.getInteger(ATTACK_DAMAGE_TAG) * 1.5F); // multiplies damage by 1.5, 50% damage increase for melee
+            int damageFormula =  Math.round(pDataIn.getInteger(ATTACK_DAMAGE_TAG) * 1.5F); // multiplies damage by 1.5, 50% damage increase for melee
+            int perkFormula = Math.round(pDataIn.getInteger(ATTACK_DAMAGE_TAG) * 3F); // x3 boom
 
-            playerDataIn.setInteger(ATTACK_DAMAGE_TAG, damageFormula);
+            pDataIn.setInteger(ATTACK_DAMAGE_TAG, damageFormula);
 
-            if (playerDataIn.getInteger(ATTACK_DAMAGE_TAG) == 5) { // perk
-                playerDataIn.setBoolean(ATTACK_DAMAGE_BONUS_TAG, true);
+            if (pDataIn.getInteger(ATTACK_DAMAGE_TAG) >= 5 && ! pDataIn.getBoolean(ATTACK_DAMAGE_BONUS_TAG)) { // perk. if above 5 damage and had no bonus
+                pDataIn.setInteger(ATTACK_DAMAGE_TAG, perkFormula);
+                pDataIn.setBoolean(ATTACK_DAMAGE_BONUS_TAG, true);
             }
 
             usedStrengthBob = false;
         }
 
         if (usedPerceptionBob) {
-            playerDataIn.setInteger(GUN_ACCURACY_TAG, playerDataIn.getInteger(GUN_ACCURACY_TAG) + 1); // reduces spread
+            pDataIn.setInteger(GUN_ACCURACY_TAG, pDataIn.getInteger(GUN_ACCURACY_TAG) + 1); // reduces spread
 
-            if (playerDataIn.getInteger(GUN_ACCURACY_TAG) == 5) { // perk
-                playerDataIn.setBoolean(NIGHT_VISION_TAG, true);
+            if (pDataIn.getInteger(GUN_ACCURACY_TAG) >= 5) { // perk
+                pDataIn.setBoolean(NIGHT_VISION_TAG, true);
             }
 
             usedPerceptionBob = false;
         }
 
         if (usedEnduranceBob) {
-            playerDataIn.setInteger(MAX_HEALTH_TAG, playerDataIn.getInteger(MAX_HEALTH_TAG) + 4); // +2 full hearts
+            pDataIn.setInteger(MAX_HEALTH_TAG, pDataIn.getInteger(MAX_HEALTH_TAG) + 4); // +2 full hearts
 
-            if (playerDataIn.getInteger(MAX_HEALTH_TAG) == 5) { // perk
-                playerDataIn.setBoolean(MAX_HEALTH_BONUS_TAG, true);
+            if (pDataIn.getInteger(MAX_HEALTH_TAG) >= 20) { // perk, 5 bobs
+                pDataIn.setInteger(MAX_HEALTH_TAG, pDataIn.getInteger(MAX_HEALTH_TAG) + 10); // 4 + 10 = 7 full hearts
             }
 
             usedEnduranceBob = false;
         }
 
         if (usedCharismaBob) { // plot armor
-            playerDataIn.setInteger(ARMOR_TAG, playerDataIn.getInteger(ARMOR_TAG) + 2);
-            playerDataIn.setInteger(ARMOR_TOUGHNESS_TAG, playerDataIn.getInteger(ARMOR_TOUGHNESS_TAG) + 1);
+            pDataIn.setInteger(ARMOR_TAG, pDataIn.getInteger(ARMOR_TAG) + 2);
+            pDataIn.setInteger(ARMOR_TOUGHNESS_TAG, pDataIn.getInteger(ARMOR_TOUGHNESS_TAG) + 1);
+
+            if (pDataIn.getInteger(ARMOR_TAG) >= 6)
 
             usedCharismaBob = false;
         }
 
         if (usedIntelligenceBob) { // increases gun damage
-            playerDataIn.setInteger(GUN_DAMAGE_TAG, playerDataIn.getInteger(GUN_DAMAGE_TAG) + 2);
+            pDataIn.setInteger(GUN_DAMAGE_TAG, pDataIn.getInteger(GUN_DAMAGE_TAG) + 2);
 
             usedIntelligenceBob = false;
         }
 
 
         if (usedAgilityBob) { // percentage
-            playerDataIn.setFloat(MOVEMENT_SPEED_TAG, playerDataIn.getFloat(MOVEMENT_SPEED_TAG) + 0.05F); // +5% movement speed
+            pDataIn.setFloat(MOVEMENT_SPEED_TAG, pDataIn.getFloat(MOVEMENT_SPEED_TAG) + 0.05F); // +5% movement speed
 
             // todo keybind for tweaking current move speed after acquiring 5 agility bob
 
@@ -139,34 +144,37 @@ public class LNBTMagic {
         }
 
         if (usedLuckBob) { // increases the chance of reloading rounds for free,
-            playerDataIn.setInteger(LUCK_TAG, playerDataIn.getInteger(LUCK_TAG) + 1);
+            pDataIn.setInteger(LUCK_TAG, pDataIn.getInteger(LUCK_TAG) + 1);
 
             usedAgilityBob = false;
         }
     }
 
-    private void statsAndPerks(EntityPlayer playerIn) {
+    private void statsAndPerks(EntityPlayer playerIn, NBTTagCompound playerDataIn) {
+
+        IAttributeInstance attackDamage = playerIn.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE);
+        IAttributeInstance maxHealth = playerIn.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH);
+
         // i get the tags from addTags() and handle the attribute modification or perks. The NBT tags are written to the player's data, its persistent and will (hopefully) be applied as long the game is running
         for (String tag : playerIn.getTags()) {
 
             // strength
             if (tag.equals(ATTACK_DAMAGE_TAG)) {
-                playerIn.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).applyModifier(new AttributeModifier(ATTACK_DAMAGE_MODIFIER, nameIn, 1, 0));
+                attackDamage.applyModifier(new AttributeModifier(ATTACK_DAMAGE_MODIFIER, nameIn, playerDataIn.getInteger(ATTACK_DAMAGE_TAG), 0));
             }
             //
 
             // perception
             // todo gun accuracy stat logic
-
             // perk
             if (tag.equals(NIGHT_VISION_TAG) && playerIn.getEntityData().getBoolean(NIGHT_VISION_TAG)) { // if i found NIGHT VISION TAG and its true
-                playerIn.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).applyModifier(new AttributeModifier(MAX_HEALTH_UUID, nameIn, playerIn.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH) + 1, 0));
+                // todo add infinite night vision effect
             }
             //
 
             // endurance
             if (tag.equals(MAX_HEALTH_TAG)) {
-                playerIn.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).applyModifier(new AttributeModifier(MAX_HEALTH_UUID, nameIn, 1, 0));
+                maxHealth.applyModifier(new AttributeModifier(MAX_HEALTH_UUID, nameIn, playerDataIn.getInteger(MAX_HEALTH_TAG), 0));
             }
             //
 
