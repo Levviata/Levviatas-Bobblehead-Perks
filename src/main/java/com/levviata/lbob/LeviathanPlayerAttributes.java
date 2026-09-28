@@ -25,11 +25,5 @@ public class LeviathanPlayerAttributes {
     public void preInit(FMLPreInitializationEvent event) {
         MinecraftForge.EVENT_BUS.register(new PlayerUseBobblehead());
         MinecraftForge.EVENT_BUS.register(new LBAttributeModifier());
-        MinecraftForge.EVENT_BUS.register(new ConstantTags());
-    }
-
-    @Mod.EventHandler
-    public void serverStarting(FMLServerStartingEvent event) {
-        event.registerServerCommand(new CommandRemoveHealth());
     }
 }

@@ -10,6 +10,9 @@ import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.scoreboard.IScoreCriteria;
+import net.minecraft.scoreboard.Score;
+import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -33,6 +36,9 @@ public class PlayerUseBobblehead {
     public static boolean usedAgilityBob = false;
     public static boolean usedLuckBob = false;
 
+    private static final String STRENGTH_BOARD = "Strength";
+    private static final String ENDURANCE_BOARD = "Endurance";
+
     @SubscribeEvent
     public void use(PlayerInteractEvent.RightClickItem event) {
         //ItemStack bob = new ItemStack(Objects.requireNonNull(Item.getByNameOrId("hbm:bobblehead")));
@@ -49,7 +55,7 @@ public class PlayerUseBobblehead {
         // i write to the player data with my desired tags, this is persistent as its stored to the disk (i think)
         NBTTagCompound playerData = player.getEntityData();
 
-        scoreboard = Objects.requireNonNull(player.getServer()).getWorld(0).getScoreboard();
+        scoreboard = player.getEntityWorld().getScoreboard();
 
         checkBob(stack, player, bob);
 
@@ -120,6 +126,14 @@ public class PlayerUseBobblehead {
                 pDataIn.setBoolean(ATTACK_DAMAGE_BONUS_TAG, true);
             }
 
+            if (scoreboard.getObjective(STRENGTH_BOARD) == null) {
+                scoreboard.addScoreObjective(STRENGTH_BOARD, IScoreCriteria.DUMMY);
+            }
+
+            ScoreObjective objective = scoreboard.getObjective(STRENGTH_BOARD);
+            Score score = scoreboard.getOrCreateScore(player.getName(), objective);
+            score.setScorePoints(score.getScorePoints() + 1);
+
             usedStrengthBob = false;
         }
 
@@ -145,6 +159,15 @@ public class PlayerUseBobblehead {
             }
 
             maxHealth.applyModifier(new AttributeModifier(MAX_HEALTH_UUID, nameIn, maxHealth.getAttributeValue() + pDataIn.getDouble(MAX_HEALTH_TAG), 0));
+
+            if (scoreboard.getObjective(ENDURANCE_BOARD) == null) {
+                scoreboard.addScoreObjective(ENDURANCE_BOARD, IScoreCriteria.DUMMY);
+            }
+
+            ScoreObjective objective = scoreboard.getObjective(ENDURANCE_BOARD);
+            Score score = scoreboard.getOrCreateScore(player.getName(), objective);
+            score.setScorePoints(score.getScorePoints() + 1);
+
             usedEnduranceBob = false;
         }
 
