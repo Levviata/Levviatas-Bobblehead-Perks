@@ -49,6 +49,8 @@ public class PlayerUseBobblehead {
         // i write to the player data with my desired tags, this is persistent as its stored to the disk (i think)
         NBTTagCompound playerData = player.getEntityData();
 
+        scoreboard = Objects.requireNonNull(player.getServer()).getWorld(0).getScoreboard();
+
         checkBob(stack, player, bob);
 
         addTags(player, playerData);
@@ -137,12 +139,12 @@ public class PlayerUseBobblehead {
             maxHealth.removeModifier(MAX_HEALTH_UUID);
             if (pDataIn.getDouble(MAX_HEALTH_TAG) >= 20 && !pDataIn.getBoolean(MAX_HEALTH_BONUS_TAG)) { // perk, 5 bobs
                 pDataIn.setDouble(MAX_HEALTH_TAG, pDataIn.getDouble(MAX_HEALTH_TAG) + 10);
-                maxHealth.applyModifier(new AttributeModifier(MAX_HEALTH_UUID, nameIn, maxHealth.getAttributeValue() + pDataIn.getDouble(MAX_HEALTH_TAG), 0)); // 4 + 10 = 7 full hearts
                 pDataIn.setBoolean(MAX_HEALTH_BONUS_TAG, true);
             } else {
                 pDataIn.setDouble(MAX_HEALTH_TAG, pDataIn.getDouble(MAX_HEALTH_TAG) + 4);
-                maxHealth.applyModifier(new AttributeModifier(MAX_HEALTH_UUID, nameIn, maxHealth.getAttributeValue() + pDataIn.getDouble(MAX_HEALTH_TAG), 0)); // +2 full hearts
             }
+
+            maxHealth.applyModifier(new AttributeModifier(MAX_HEALTH_UUID, nameIn, maxHealth.getAttributeValue() + pDataIn.getDouble(MAX_HEALTH_TAG), 0));
             usedEnduranceBob = false;
         }
 
@@ -150,12 +152,21 @@ public class PlayerUseBobblehead {
             IAttributeInstance armor = player.getEntityAttribute(SharedMonsterAttributes.ARMOR);
             IAttributeInstance armorToughness = player.getEntityAttribute(SharedMonsterAttributes.ARMOR_TOUGHNESS);
 
-            pDataIn.setInteger(ARMOR_TAG, pDataIn.getInteger(ARMOR_TAG) + 2);
-            pDataIn.setInteger(ARMOR_TOUGHNESS_TAG, pDataIn.getInteger(ARMOR_TOUGHNESS_TAG) + 1);
+            armor.removeModifier(ARMOR_UUID);
+            armorToughness.removeModifier(ARMOR_TOUGHNESS_UUID);
 
-            if (pDataIn.getInteger(ARMOR_TAG) >= 6) {
-
+            // no bonus limit
+            if (pDataIn.getInteger(ARMOR_TAG) >= 10) { // perk, 5
+                pDataIn.setInteger(ARMOR_TAG, pDataIn.getInteger(ARMOR_TAG) + 3);
+                pDataIn.setInteger(ARMOR_TOUGHNESS_TAG, pDataIn.getInteger(ARMOR_TOUGHNESS_TAG) + 2);
+            } else {
+                pDataIn.setInteger(ARMOR_TAG, pDataIn.getInteger(ARMOR_TAG) + 2);
+                pDataIn.setInteger(ARMOR_TOUGHNESS_TAG, pDataIn.getInteger(ARMOR_TOUGHNESS_TAG) + 1);
             }
+
+            armor.applyModifier(new AttributeModifier(ARMOR_UUID, nameIn, armor.getAttributeValue() + pDataIn.getDouble(ARMOR_TAG), 0));
+            armorToughness.applyModifier(new AttributeModifier(ARMOR_TOUGHNESS_UUID, nameIn, armor.getAttributeValue() + pDataIn.getDouble(ARMOR_TOUGHNESS_TAG), 0));
+
             usedCharismaBob = false;
         }
 
