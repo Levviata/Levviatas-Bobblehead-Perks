@@ -18,5 +18,6 @@ public class LeviathanPlayerAttributes {
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
        MinecraftForge.EVENT_BUS.register(new PlayerUseBobblehead());
+        MinecraftForge.EVENT_BUS.register(new LBAttributeModifier());
     }
 }
