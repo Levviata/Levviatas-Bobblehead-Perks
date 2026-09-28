@@ -51,7 +51,7 @@ public class PlayerUseBobblehead {
 
         checkBob(stack, player, bob);
 
-        addTags(playerData);
+        addTags(player, playerData);
     }
 
     private void checkBob(ItemStack stack, EntityPlayer player, ItemStack bob) {
@@ -102,19 +102,19 @@ public class PlayerUseBobblehead {
         }
     }
 
-    private void addTags(NBTTagCompound pDataIn) {
+    private void addTags(EntityPlayer player, NBTTagCompound pDataIn) {
 
         // comes with stat increases then has perks at X amount consumed, usually 5 or 10
         // total fallout bobbleheads is 7
         if (usedStrengthBob) { // exponential, might get insane
-            int damageFormula =  1 + Math.round(pDataIn.getInteger(ATTACK_DAMAGE_TAG) * 1.1F); // multiplies damage by 1.5, 50% damage increase for melee
+            int damageFormula = Math.round(pDataIn.getInteger(ATTACK_DAMAGE_TAG) * 1.1F); // multiplies damage by 1.5, 50% damage increase for melee
 
             LOGGER.info("adding attack damage tag");
 
-            pDataIn.setInteger(ATTACK_DAMAGE_TAG, damageFormula);
+            pDataIn.setInteger(ATTACK_DAMAGE_TAG, 1 + damageFormula);
 
-            if (pDataIn.getInteger(ATTACK_DAMAGE_TAG) >= 5 && ! pDataIn.getBoolean(ATTACK_DAMAGE_BONUS_TAG)) { // perk. if above 5 damage and had no bonus
-                pDataIn.setInteger(ATTACK_DAMAGE_TAG, damageFormula + 5);
+            if (pDataIn.getInteger(ATTACK_DAMAGE_TAG) >= 5 && !pDataIn.getBoolean(ATTACK_DAMAGE_BONUS_TAG)) { // perk. if above 5 damage and had no bonus
+                pDataIn.setInteger(ATTACK_DAMAGE_TAG, 1 + 5 + damageFormula);
                 pDataIn.setBoolean(ATTACK_DAMAGE_BONUS_TAG, true);
             }
 
@@ -132,16 +132,24 @@ public class PlayerUseBobblehead {
         }
 
         if (usedEnduranceBob) {
-            pDataIn.setInteger(MAX_HEALTH_TAG, pDataIn.getInteger(MAX_HEALTH_TAG) + 4); // +2 full hearts
+            IAttributeInstance maxHealth = player.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH);
 
-            if (pDataIn.getInteger(MAX_HEALTH_TAG) >= 20) { // perk, 5 bobs
-                pDataIn.setInteger(MAX_HEALTH_TAG, pDataIn.getInteger(MAX_HEALTH_TAG) + 10); // 4 + 10 = 7 full hearts
+            maxHealth.removeModifier(MAX_HEALTH_UUID);
+            if (pDataIn.getDouble(MAX_HEALTH_TAG) >= 20 && !pDataIn.getBoolean(MAX_HEALTH_BONUS_TAG)) { // perk, 5 bobs
+                pDataIn.setDouble(MAX_HEALTH_TAG, pDataIn.getDouble(MAX_HEALTH_TAG) + 10);
+                maxHealth.applyModifier(new AttributeModifier(MAX_HEALTH_UUID, nameIn, maxHealth.getAttributeValue() + pDataIn.getDouble(MAX_HEALTH_TAG), 0)); // 4 + 10 = 7 full hearts
+                pDataIn.setBoolean(MAX_HEALTH_BONUS_TAG, true);
+            } else {
+                pDataIn.setDouble(MAX_HEALTH_TAG, pDataIn.getDouble(MAX_HEALTH_TAG) + 4);
+                maxHealth.applyModifier(new AttributeModifier(MAX_HEALTH_UUID, nameIn, maxHealth.getAttributeValue() + pDataIn.getDouble(MAX_HEALTH_TAG), 0)); // +2 full hearts
             }
-
             usedEnduranceBob = false;
         }
 
         if (usedCharismaBob) { // plot armor
+            IAttributeInstance armor = player.getEntityAttribute(SharedMonsterAttributes.ARMOR);
+            IAttributeInstance armorToughness = player.getEntityAttribute(SharedMonsterAttributes.ARMOR_TOUGHNESS);
+
             pDataIn.setInteger(ARMOR_TAG, pDataIn.getInteger(ARMOR_TAG) + 2);
             pDataIn.setInteger(ARMOR_TOUGHNESS_TAG, pDataIn.getInteger(ARMOR_TOUGHNESS_TAG) + 1);
 
