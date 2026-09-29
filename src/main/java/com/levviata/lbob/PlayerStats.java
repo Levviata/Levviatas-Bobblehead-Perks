@@ -10,16 +10,13 @@ import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
-import static com.levviata.lbob.LBAttributeModifier.*;
-import static com.levviata.lbob.LBAttributeModifier.MAX_HEALTH_BONUS_TAG;
-import static com.levviata.lbob.LBAttributeModifier.MAX_HEALTH_TAG;
 import static com.levviata.lbob.LBAttributeModifier.MAX_HEALTH_UUID;
 import static com.levviata.lbob.LBAttributeModifier.nameIn;
 import static com.levviata.lbob.LeviathanPlayerAttributes.scoreboard;
 import static com.levviata.lbob.PlayerUseBobblehead.*;
 
-public class Update {
-    private int previousEndurance = -1;
+public class PlayerStats {
+    private int previousHealth = -1;
 
     @SubscribeEvent
     public void onTick(TickEvent.PlayerTickEvent event) {
@@ -42,10 +39,9 @@ public class Update {
         ScoreObjective enduranceObj = scoreboard.getObjective(ENDURANCE_BOARD);
         Score endurance = scoreboard.getOrCreateScore(player.getName(), enduranceObj);
 
-        if (endurance.getScorePoints() != previousEndurance || player.getMaxHealth() != previousEndurance) {
-            IAttributeInstance maxHealth = player.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH);
-
-            previousEndurance = endurance.getScorePoints();
+        IAttributeInstance maxHealth = player.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH);
+        if (endurance.getScorePoints() != previousHealth || player.getMaxHealth() != previousHealth) {
+            previousHealth = endurance.getScorePoints();
             maxHealth.removeModifier(MAX_HEALTH_UUID);
             maxHealth.applyModifier(new AttributeModifier(MAX_HEALTH_UUID, nameIn, endurance.getScorePoints(), 0));
         }

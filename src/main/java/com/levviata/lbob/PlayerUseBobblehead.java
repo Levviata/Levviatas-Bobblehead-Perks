@@ -150,18 +150,6 @@ public class PlayerUseBobblehead {
         }
 
         if (usedEnduranceBob) {
-            IAttributeInstance maxHealth = player.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH);
-
-            maxHealth.removeModifier(MAX_HEALTH_UUID);
-            if (pDataIn.getDouble(MAX_HEALTH_TAG) >= 20 && !pDataIn.getBoolean(MAX_HEALTH_BONUS_TAG)) { // perk, 5 bobs
-                pDataIn.setDouble(MAX_HEALTH_TAG, pDataIn.getDouble(MAX_HEALTH_TAG) + 10);
-                pDataIn.setBoolean(MAX_HEALTH_BONUS_TAG, true);
-            } else {
-                pDataIn.setDouble(MAX_HEALTH_TAG, pDataIn.getDouble(MAX_HEALTH_TAG) + 4);
-            }
-
-            maxHealth.applyModifier(new AttributeModifier(MAX_HEALTH_UUID, nameIn, maxHealth.getAttributeValue() + pDataIn.getDouble(MAX_HEALTH_TAG), 0));
-
             if (scoreboard.getObjective(ENDURANCE_BOARD) == null) {
                 scoreboard.addScoreObjective(ENDURANCE_BOARD, IScoreCriteria.DUMMY);
             }
@@ -170,7 +158,6 @@ public class PlayerUseBobblehead {
             }
 
             ScoreObjective endBonusObj = scoreboard.getObjective(ENDURANCE_BONUS_BOARD);
-            assert endBonusObj != null;
             Score enduranceBonus = scoreboard.getOrCreateScore(player.getName(), endBonusObj);
 
             ScoreObjective objective = scoreboard.getObjective(ENDURANCE_BOARD);
