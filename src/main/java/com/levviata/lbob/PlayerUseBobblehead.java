@@ -36,8 +36,10 @@ public class PlayerUseBobblehead {
     public static boolean usedAgilityBob = false;
     public static boolean usedLuckBob = false;
 
-    private static final String STRENGTH_BOARD = "Strength";
-    private static final String ENDURANCE_BOARD = "Endurance";
+    public static final String STRENGTH_BOARD = "Strength";
+    public static final String ENDURANCE_BOARD = "Endurance";
+    public static final String ENDURANCE_BONUS_BOARD = "EnduranceBonus";
+    private static final String CHARISMA_BOARD = "Charisma";
 
     @SubscribeEvent
     public void use(PlayerInteractEvent.RightClickItem event) {
@@ -163,10 +165,23 @@ public class PlayerUseBobblehead {
             if (scoreboard.getObjective(ENDURANCE_BOARD) == null) {
                 scoreboard.addScoreObjective(ENDURANCE_BOARD, IScoreCriteria.DUMMY);
             }
+            if (scoreboard.getObjective(ENDURANCE_BONUS_BOARD) == null) {
+                scoreboard.addScoreObjective(ENDURANCE_BONUS_BOARD, IScoreCriteria.DUMMY);
+            }
+
+            ScoreObjective endBonusObj = scoreboard.getObjective(ENDURANCE_BONUS_BOARD);
+            assert endBonusObj != null;
+            Score enduranceBonus = scoreboard.getOrCreateScore(player.getName(), endBonusObj);
 
             ScoreObjective objective = scoreboard.getObjective(ENDURANCE_BOARD);
-            Score score = scoreboard.getOrCreateScore(player.getName(), objective);
-            score.setScorePoints(score.getScorePoints() + 1);
+            Score endurance = scoreboard.getOrCreateScore(player.getName(), objective);
+
+            if (endurance.getScorePoints() >= 20 && enduranceBonus.getScorePoints() != 1) { // perk, 5 bobs
+                endurance.setScorePoints(endurance.getScorePoints() + 10);
+                enduranceBonus.setScorePoints(1);
+            } else {
+                endurance.setScorePoints(endurance.getScorePoints() + 4);
+            }
 
             usedEnduranceBob = false;
         }
@@ -189,7 +204,15 @@ public class PlayerUseBobblehead {
 
             armor.applyModifier(new AttributeModifier(ARMOR_UUID, nameIn, armor.getAttributeValue() + pDataIn.getDouble(ARMOR_TAG), 0));
             armorToughness.applyModifier(new AttributeModifier(ARMOR_TOUGHNESS_UUID, nameIn, armor.getAttributeValue() + pDataIn.getDouble(ARMOR_TOUGHNESS_TAG), 0));
+            
+            if (scoreboard.getObjective(CHARISMA_BOARD) == null) {
+                scoreboard.addScoreObjective(CHARISMA_BOARD, IScoreCriteria.DUMMY);
+            }
 
+            ScoreObjective objective = scoreboard.getObjective(CHARISMA_BOARD);
+            Score score = scoreboard.getOrCreateScore(player.getName(), objective);
+            score.setScorePoints(score.getScorePoints() + 1);
+            
             usedCharismaBob = false;
         }
 
