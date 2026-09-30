@@ -39,7 +39,7 @@ public class PlayerUseBobblehead {
     public static final String STRENGTH_BOARD = "Strength";
     public static final String ENDURANCE_BOARD = "Endurance";
     public static final String ENDURANCE_BONUS_BOARD = "EnduranceBonus";
-    private static final String CHARISMA_BOARD = "Charisma";
+    public static final String CHARISMA_BOARD = "Charisma";
 
     @SubscribeEvent
     public void use(PlayerInteractEvent.RightClickItem event) {
@@ -117,16 +117,6 @@ public class PlayerUseBobblehead {
         // comes with stat increases then has perks at X amount consumed, usually 5 or 10
         // total fallout bobbleheads is 7
         if (usedStrengthBob) { // exponential, might get insane
-            int damageFormula = Math.round(pDataIn.getInteger(ATTACK_DAMAGE_TAG) * 1.1F); // multiplies damage by 1.5, 50% damage increase for melee
-
-            LOGGER.info("adding attack damage tag");
-
-            pDataIn.setInteger(ATTACK_DAMAGE_TAG, 1 + damageFormula);
-
-            if (pDataIn.getInteger(ATTACK_DAMAGE_TAG) >= 5 && !pDataIn.getBoolean(ATTACK_DAMAGE_BONUS_TAG)) { // perk. if above 5 damage and had no bonus
-                pDataIn.setInteger(ATTACK_DAMAGE_TAG, 1 + 5 + damageFormula);
-                pDataIn.setBoolean(ATTACK_DAMAGE_BONUS_TAG, true);
-            }
 
             if (scoreboard.getObjective(STRENGTH_BOARD) == null) {
                 scoreboard.addScoreObjective(STRENGTH_BOARD, IScoreCriteria.DUMMY);
@@ -140,11 +130,11 @@ public class PlayerUseBobblehead {
         }
 
         if (usedPerceptionBob) {
-            pDataIn.setInteger(GUN_ACCURACY_TAG, pDataIn.getInteger(GUN_ACCURACY_TAG) + 1); // reduces spread
+           /* pDataIn.setInteger(GUN_ACCURACY_TAG, pDataIn.getInteger(GUN_ACCURACY_TAG) + 1); // reduces spread
 
             if (pDataIn.getInteger(GUN_ACCURACY_TAG) >= 5) { // perk
                 pDataIn.setBoolean(NIGHT_VISION_TAG, true);
-            }
+            }*/
 
             usedPerceptionBob = false;
         }
@@ -174,24 +164,7 @@ public class PlayerUseBobblehead {
         }
 
         if (usedCharismaBob) { // plot armor
-            IAttributeInstance armor = player.getEntityAttribute(SharedMonsterAttributes.ARMOR);
-            IAttributeInstance armorToughness = player.getEntityAttribute(SharedMonsterAttributes.ARMOR_TOUGHNESS);
 
-            armor.removeModifier(ARMOR_UUID);
-            armorToughness.removeModifier(ARMOR_TOUGHNESS_UUID);
-
-            // no bonus limit
-            if (pDataIn.getInteger(ARMOR_TAG) >= 10) { // perk, 5
-                pDataIn.setInteger(ARMOR_TAG, pDataIn.getInteger(ARMOR_TAG) + 3);
-                pDataIn.setInteger(ARMOR_TOUGHNESS_TAG, pDataIn.getInteger(ARMOR_TOUGHNESS_TAG) + 2);
-            } else {
-                pDataIn.setInteger(ARMOR_TAG, pDataIn.getInteger(ARMOR_TAG) + 2);
-                pDataIn.setInteger(ARMOR_TOUGHNESS_TAG, pDataIn.getInteger(ARMOR_TOUGHNESS_TAG) + 1);
-            }
-
-            armor.applyModifier(new AttributeModifier(ARMOR_UUID, nameIn, armor.getAttributeValue() + pDataIn.getDouble(ARMOR_TAG), 0));
-            armorToughness.applyModifier(new AttributeModifier(ARMOR_TOUGHNESS_UUID, nameIn, armor.getAttributeValue() + pDataIn.getDouble(ARMOR_TOUGHNESS_TAG), 0));
-            
             if (scoreboard.getObjective(CHARISMA_BOARD) == null) {
                 scoreboard.addScoreObjective(CHARISMA_BOARD, IScoreCriteria.DUMMY);
             }
@@ -204,14 +177,14 @@ public class PlayerUseBobblehead {
         }
 
         if (usedIntelligenceBob) { // increases gun damage
-            pDataIn.setInteger(GUN_DAMAGE_TAG, pDataIn.getInteger(GUN_DAMAGE_TAG) + 2);
+           // pDataIn.setInteger(GUN_DAMAGE_TAG, pDataIn.getInteger(GUN_DAMAGE_TAG) + 2);
 
             usedIntelligenceBob = false;
         }
 
 
         if (usedAgilityBob) { // percentage
-            pDataIn.setFloat(MOVEMENT_SPEED_TAG, pDataIn.getFloat(MOVEMENT_SPEED_TAG) + 0.05F); // +5% movement speed
+            //pDataIn.setFloat(MOVEMENT_SPEED_TAG, pDataIn.getFloat(MOVEMENT_SPEED_TAG) + 0.05F); // +5% movement speed
 
             // todo keybind for tweaking current move speed after acquiring 5 agility bob
 
@@ -219,7 +192,7 @@ public class PlayerUseBobblehead {
         }
 
         if (usedLuckBob) { // increases the chance of reloading rounds for free,
-            pDataIn.setInteger(LUCK_TAG, pDataIn.getInteger(LUCK_TAG) + 1);
+            //pDataIn.setInteger(LUCK_TAG, pDataIn.getInteger(LUCK_TAG) + 1);
 
             usedAgilityBob = false;
         }
