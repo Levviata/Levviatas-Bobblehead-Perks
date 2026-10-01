@@ -1,22 +1,30 @@
 package com.levviata.lbob;
 
+import com.hbm.items.weapon.sedna.GunConfig;
+import com.hbm.items.weapon.sedna.ItemGunBaseNT;
+import com.hbm.items.weapon.sedna.ItemGunBaseSedna;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.IAttributeInstance;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.EntityEquipmentSlot;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.scoreboard.IScoreCriteria;
 import net.minecraft.scoreboard.Score;
 import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import com.hbm.items.weapon.sedna.Receiver;
 
+import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.UUID;
 
 import static com.levviata.lbob.LeviathanPlayerAttributes.scoreboard;
 import static com.levviata.lbob.PlayerUseBobblehead.*;
+import static com.levviata.lbob.LeviathanPlayerAttributes.LOGGER;
 
 public class PlayerStats {
     //vanilla uuids
@@ -70,6 +78,7 @@ public class PlayerStats {
 
     private int previousHealth = -1;
     private int previousCharisma = -1;
+    private float previousGunDmg = -1;
 
     @SubscribeEvent
     public void onTick(TickEvent.PlayerTickEvent event) {
@@ -96,7 +105,9 @@ public class PlayerStats {
         if (scoreboard.getObjective(CHARISMA_BOARD) == null) {
             scoreboard.addScoreObjective(CHARISMA_BOARD, IScoreCriteria.DUMMY);
         }
-
+        if (scoreboard.getObjective(INTELLIGENCE_BOARD) == null) {
+            scoreboard.addScoreObjective(INTELLIGENCE_BOARD, IScoreCriteria.DUMMY);
+        }
 
         // strength
         ScoreObjective objStrength = scoreboard.getObjective(STRENGTH_BOARD);
@@ -149,6 +160,64 @@ public class PlayerStats {
 
             armor.applyModifier(new AttributeModifier(ARMOR_UUID, nameIn, charismaScore.getScorePoints() * 2, 0));
             armorToughness.applyModifier(new AttributeModifier(ARMOR_TOUGHNESS_UUID, nameIn, charismaScore.getScorePoints() * 0.5D, 0));
+        }
+
+        // intelligence
+        ScoreObjective objIntelligence = scoreboard.getObjective(INTELLIGENCE_BOARD);
+        Score intelligenceScore = scoreboard.getOrCreateScore(player.getName(), objIntelligence);
+
+        // idea,
+        // perk 5 1 more projectile per 5 shots,
+        // perk 10 right and left duals interchange with double damage on each shot every 5 shots with 1 more projectile,
+        // single fire same
+
+        // to modify weapon damage i guess i can call setter Receiver dmg() method, set it, then set it back when item unequipped
+        if (player.getHeldItemMainhand().getItem() instanceof ItemGunBaseSedna) {
+            ItemGunBaseSedna gun = (ItemGunBaseSedna) player.getHeldItemMainhand().getItem();
+            LOGGER.info("we have sedna gun {}", gun);
+        }
+        ItemStack gunStack = ItemStack.EMPTY;
+        if (player.getHeldItemMainhand().getItem() instanceof ItemGunBaseNT) {
+            ItemGunBaseNT currentGun = (ItemGunBaseNT) player.getHeldItemMainhand().getItem();
+            gunStack = player.getHeldItemMainhand();
+
+            LOGGER.info("we have nt gun {}", currentGun);
+
+            GunConfig c = currentGun.getConfig(player.getHeldItemMainhand(), 0);
+
+            float rDamage1 = -1;
+            Receiver rToModify = new Receiver(0);
+            // single receiver per gun
+            // akimbo, or dual, guns have two receivers
+            // test revolver has two as well but that doesn't exist in CE
+            Receiver[] receivers = c.getReceivers(player.getHeldItemMainhand());
+            Receiver one = new Receiver(0);
+            Receiver two = new Receiver(1);
+            for (int i = 0; i < receivers.length; i++) {
+                one = receivers[0];
+                two = receivers[1];
+            }
+
+            one.dmg(intelligenceScore.getScorePoints());
+            two.dmg(intelligenceScore.getScorePoints());
+
+            if (rDamage1 != previousGunDmg) {
+                previousGunDmg = rDamage1;
+                rToModify.dmg(rDamage1 + intelligenceScore.getScorePoints());
+
+            } else {
+                LOGGER.info("receiver damage is the same, not changing!");
+            }
+        }
+        if (gunStack != ItemStack.EMPTY && gunStack != player.getHeldItemMainhand() && gunStack.getItem() instanceof ItemGunBaseNT) {
+            ItemGunBaseNT heldOffGun = (ItemGunBaseNT) gunStack.getItem();
+
+            GunConfig c = heldOffGun.getConfig(gunStack, 0);
+
+            for (Receiver r : c.getReceivers(gunStack)) {
+                r.dmg(previousGunDmg);
+            }
+            previousGunDmg = -1;
         }
     }
 }
