@@ -78,7 +78,10 @@ public class PlayerStats {
 
     private int previousHealth = -1;
     private int previousCharisma = -1;
-    private float previousGunDmg = -1;
+    float receiverOneLastDmg = -1;
+    float receiverTwoLastDmg = -1;
+    boolean hasTwoReceivers = false;
+    boolean gotBaseDmg = false;
 
     @SubscribeEvent
     public void onTick(TickEvent.PlayerTickEvent event) {
@@ -176,6 +179,7 @@ public class PlayerStats {
             ItemGunBaseSedna gun = (ItemGunBaseSedna) player.getHeldItemMainhand().getItem();
             LOGGER.info("we have sedna gun {}", gun);
         }
+
         ItemStack gunStack = ItemStack.EMPTY;
         if (player.getHeldItemMainhand().getItem() instanceof ItemGunBaseNT) {
             ItemGunBaseNT currentGun = (ItemGunBaseNT) player.getHeldItemMainhand().getItem();
@@ -185,39 +189,67 @@ public class PlayerStats {
 
             GunConfig c = currentGun.getConfig(player.getHeldItemMainhand(), 0);
 
-            float rDamage1 = -1;
-            Receiver rToModify = new Receiver(0);
             // single receiver per gun
             // akimbo, or dual, guns have two receivers
             // test revolver has two as well but that doesn't exist in CE
             Receiver[] receivers = c.getReceivers(player.getHeldItemMainhand());
             Receiver one = new Receiver(0);
-            Receiver two = new Receiver(1);
+            Receiver two = new Receiver(0);
+            hasTwoReceivers = false;
+
             for (int i = 0; i < receivers.length; i++) {
                 one = receivers[0];
-                two = receivers[1];
+                if (receivers.length > 1) {
+                    hasTwoReceivers = true;
+                    two = receivers[1];
+                }
             }
 
-            one.dmg(intelligenceScore.getScorePoints());
-            two.dmg(intelligenceScore.getScorePoints());
-
-            if (rDamage1 != previousGunDmg) {
-                previousGunDmg = rDamage1;
-                rToModify.dmg(rDamage1 + intelligenceScore.getScorePoints());
-
-            } else {
-                LOGGER.info("receiver damage is the same, not changing!");
+            if (!gotBaseDmg) {
+                receiverOneLastDmg = one.getBaseDamage(gunStack);
+                if (hasTwoReceivers) {
+                    receiverTwoLastDmg = two.getBaseDamage(gunStack);
+                }
+                gotBaseDmg = true;
             }
+
+            one.dmg(one.getBaseDamage(gunStack) + intelligenceScore.getScorePoints());
+            if (hasTwoReceivers) {
+                    two.dmg(two.getBaseDamage(gunStack) + intelligenceScore.getScorePoints());
+            }
+
+           /* if (one.getBaseDamage(gunStack) != receiverOneLastDmg) {
+                one.dmg(one.getBaseDamage(gunStack) + intelligenceScore.getScorePoints());
+            }
+
+            if (hasTwoReceivers) {
+                if (two.getBaseDamage(gunStack) != receiverTwoLastDmg) {
+                    two.dmg(two.getBaseDamage(gunStack) + intelligenceScore.getScorePoints());
+                }
+            }*/
+
+
         }
         if (gunStack != ItemStack.EMPTY && gunStack != player.getHeldItemMainhand() && gunStack.getItem() instanceof ItemGunBaseNT) {
             ItemGunBaseNT heldOffGun = (ItemGunBaseNT) gunStack.getItem();
 
             GunConfig c = heldOffGun.getConfig(gunStack, 0);
 
-            for (Receiver r : c.getReceivers(gunStack)) {
-                r.dmg(previousGunDmg);
+            Receiver[] receivers = c.getReceivers(player.getHeldItemMainhand());
+            hasTwoReceivers = false;
+
+            for (int i = 0; i < receivers.length; i++) {
+                receivers[0].dmg(receiverOneLastDmg);
+                if (receivers.length > 1) {
+                    hasTwoReceivers = true;
+                    receivers[1].dmg(receiverTwoLastDmg);
+                }
             }
-            previousGunDmg = -1;
+            receiverOneLastDmg = -1;
+            if (hasTwoReceivers) {
+                receiverTwoLastDmg = -1;
+            }
+            gotBaseDmg = false;
         }
     }
 }
