@@ -40,6 +40,8 @@ public class PlayerUseBobblehead {
     public static final String ENDURANCE_BOARD = "Endurance";
     public static final String ENDURANCE_BONUS_BOARD = "EnduranceBonus";
     public static final String CHARISMA_BOARD = "Charisma";
+    public static final String PERCEPTION_BOARD = "Perception";
+    public static final String INTELLIGENCE_BOARD = "Intelligence";
 
     @SubscribeEvent
     public void use(PlayerInteractEvent.RightClickItem event) {
@@ -116,8 +118,7 @@ public class PlayerUseBobblehead {
 
         // comes with stat increases then has perks at X amount consumed, usually 5 or 10
         // total fallout bobbleheads is 7
-        if (usedStrengthBob) { // exponential, might get insane
-
+        if (usedStrengthBob) {
             if (scoreboard.getObjective(STRENGTH_BOARD) == null) {
                 scoreboard.addScoreObjective(STRENGTH_BOARD, IScoreCriteria.DUMMY);
             }
@@ -164,6 +165,7 @@ public class PlayerUseBobblehead {
         }
 
         if (usedCharismaBob) { // plot armor
+            // todo perk
 
             if (scoreboard.getObjective(CHARISMA_BOARD) == null) {
                 scoreboard.addScoreObjective(CHARISMA_BOARD, IScoreCriteria.DUMMY);
@@ -177,7 +179,13 @@ public class PlayerUseBobblehead {
         }
 
         if (usedIntelligenceBob) { // increases gun damage
-           // pDataIn.setInteger(GUN_DAMAGE_TAG, pDataIn.getInteger(GUN_DAMAGE_TAG) + 2);
+            if (scoreboard.getObjective(INTELLIGENCE_BOARD) == null) {
+                scoreboard.addScoreObjective(INTELLIGENCE_BOARD, IScoreCriteria.DUMMY);
+            }
+
+            ScoreObjective objective = scoreboard.getObjective(INTELLIGENCE_BOARD);
+            Score score = scoreboard.getOrCreateScore(player.getName(), objective);
+            score.setScorePoints(score.getScorePoints() + 1);
 
             usedIntelligenceBob = false;
         }
