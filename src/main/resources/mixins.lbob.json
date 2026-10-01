@@ -1,6 +1,6 @@
 {
-	"package": "",
-	"required": true,
+	"package": "com.levviata.lbob.mixin",
+	"required": false,
 	"refmap": "mixins.lbob.refmap.json",
 	"target": "@env(DEFAULT)",
 	"minVersion": "0.8.5",
