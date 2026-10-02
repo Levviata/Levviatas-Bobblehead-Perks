@@ -78,10 +78,19 @@ public class PlayerStats {
 
     private int previousHealth = -1;
     private int previousCharisma = -1;
+
+    private ItemStack modifiedGun = ItemStack.EMPTY;
+    private Receiver modifiedReceiverOne;
+    private Receiver modifiedReceiverTwo;
+    private float originalDamageOne;
+    private float originalDamageTwo;
+    private boolean modified;
+    /*
     float receiverOneLastDmg = -1;
     float receiverTwoLastDmg = -1;
     boolean hasTwoReceivers = false;
     boolean gotBaseDmg = false;
+    boolean isResetDamage = false;*/
 
     @SubscribeEvent
     public void onTick(TickEvent.PlayerTickEvent event) {
@@ -180,76 +189,55 @@ public class PlayerStats {
             LOGGER.info("we have sedna gun {}", gun);
         }
 
-        ItemStack gunStack = ItemStack.EMPTY;
-        if (player.getHeldItemMainhand().getItem() instanceof ItemGunBaseNT) {
-            ItemGunBaseNT currentGun = (ItemGunBaseNT) player.getHeldItemMainhand().getItem();
-            gunStack = player.getHeldItemMainhand();
+        ItemStack heldStack = player.getHeldItemMainhand();
 
-            LOGGER.info("we have nt gun {}", currentGun);
+        if (heldStack.getItem() instanceof ItemGunBaseNT) {
+            if (!modified || !ItemStack.areItemStacksEqual(modifiedGun, heldStack)) {
+                if (modified) {
+                    modifiedReceiverOne.dmg(originalDamageOne);
 
-            GunConfig c = currentGun.getConfig(player.getHeldItemMainhand(), 0);
+                    if (modifiedReceiverTwo != null) {
+                        modifiedReceiverTwo.dmg(originalDamageTwo);
+                    }
 
-            // single receiver per gun
-            // akimbo, or dual, guns have two receivers
-            // test revolver has two as well but that doesn't exist in CE
-            Receiver[] receivers = c.getReceivers(player.getHeldItemMainhand());
-            Receiver one = new Receiver(0);
-            Receiver two = new Receiver(0);
-            hasTwoReceivers = false;
+                    modified = false;
+                   // LOGGER.info("Cleaned modified gun in main hand {}", modifiedGun);
+                }
 
-            for (int i = 0; i < receivers.length; i++) {
-                one = receivers[0];
+                ItemGunBaseNT gun = (ItemGunBaseNT) heldStack.getItem();
+                GunConfig config = gun.getConfig(heldStack, 0);
+                Receiver[] receivers = config.getReceivers(heldStack);
+
+                modifiedReceiverOne = receivers[0];
+                originalDamageOne = modifiedReceiverOne.getBaseDamage(heldStack);
+
+                modifiedReceiverOne.dmg(originalDamageOne + intelligenceScore.getScorePoints());
+
+                modifiedReceiverTwo = null;
+
                 if (receivers.length > 1) {
-                    hasTwoReceivers = true;
-                    two = receivers[1];
+                    modifiedReceiverTwo = receivers[1];
+                    originalDamageTwo = modifiedReceiverTwo.getBaseDamage(heldStack);
+
+                    modifiedReceiverTwo.dmg(originalDamageTwo + intelligenceScore.getScorePoints());
                 }
+
+                modifiedGun = heldStack.copy();
+                modified = true;
+                //LOGGER.info("modified gun {}", modifiedGun);
+            }
+        } else if (modified) {
+            modifiedReceiverOne.dmg(originalDamageOne);
+
+            if (modifiedReceiverTwo != null) {
+                modifiedReceiverTwo.dmg(originalDamageTwo);
             }
 
-            if (!gotBaseDmg) {
-                receiverOneLastDmg = one.getBaseDamage(gunStack);
-                if (hasTwoReceivers) {
-                    receiverTwoLastDmg = two.getBaseDamage(gunStack);
-                }
-                gotBaseDmg = true;
-            }
-
-            one.dmg(one.getBaseDamage(gunStack) + intelligenceScore.getScorePoints());
-            if (hasTwoReceivers) {
-                    two.dmg(two.getBaseDamage(gunStack) + intelligenceScore.getScorePoints());
-            }
-
-           /* if (one.getBaseDamage(gunStack) != receiverOneLastDmg) {
-                one.dmg(one.getBaseDamage(gunStack) + intelligenceScore.getScorePoints());
-            }
-
-            if (hasTwoReceivers) {
-                if (two.getBaseDamage(gunStack) != receiverTwoLastDmg) {
-                    two.dmg(two.getBaseDamage(gunStack) + intelligenceScore.getScorePoints());
-                }
-            }*/
-
-
-        }
-        if (gunStack != ItemStack.EMPTY && gunStack != player.getHeldItemMainhand() && gunStack.getItem() instanceof ItemGunBaseNT) {
-            ItemGunBaseNT heldOffGun = (ItemGunBaseNT) gunStack.getItem();
-
-            GunConfig c = heldOffGun.getConfig(gunStack, 0);
-
-            Receiver[] receivers = c.getReceivers(player.getHeldItemMainhand());
-            hasTwoReceivers = false;
-
-            for (int i = 0; i < receivers.length; i++) {
-                receivers[0].dmg(receiverOneLastDmg);
-                if (receivers.length > 1) {
-                    hasTwoReceivers = true;
-                    receivers[1].dmg(receiverTwoLastDmg);
-                }
-            }
-            receiverOneLastDmg = -1;
-            if (hasTwoReceivers) {
-                receiverTwoLastDmg = -1;
-            }
-            gotBaseDmg = false;
+            modifiedGun = ItemStack.EMPTY;
+            modifiedReceiverOne = null;
+            modifiedReceiverTwo = null;
+            modified = false;
+            //LOGGER.info("cleaned modifications from gun {}", modifiedGun);
         }
     }
 }
