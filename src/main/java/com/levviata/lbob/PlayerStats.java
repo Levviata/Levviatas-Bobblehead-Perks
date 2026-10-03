@@ -1,5 +1,6 @@
 package com.levviata.lbob;
 
+import com.hbm.handler.GunConfigurationSedna;
 import com.hbm.items.weapon.sedna.GunConfig;
 import com.hbm.items.weapon.sedna.ItemGunBaseNT;
 import com.hbm.items.weapon.sedna.ItemGunBaseSedna;
@@ -85,6 +86,9 @@ public class PlayerStats {
     private float originalDamageOne;
     private float originalDamageTwo;
     private boolean modified;
+
+    private ItemStack loggedSednaGun = ItemStack.EMPTY;
+
     /*
     float receiverOneLastDmg = -1;
     float receiverTwoLastDmg = -1;
@@ -183,13 +187,19 @@ public class PlayerStats {
         // perk 10 right and left duals interchange with double damage on each shot every 5 shots with 1 more projectile,
         // single fire same
 
-        // to modify weapon damage i guess i can call setter Receiver dmg() method, set it, then set it back when item unequipped
-        if (player.getHeldItemMainhand().getItem() instanceof ItemGunBaseSedna) {
-            ItemGunBaseSedna gun = (ItemGunBaseSedna) player.getHeldItemMainhand().getItem();
-            LOGGER.info("we have sedna gun {}", gun);
-        }
-
         ItemStack heldStack = player.getHeldItemMainhand();
+
+        if (heldStack.getItem() instanceof ItemGunBaseSedna) {
+            // to my knowledge, no guns inherit this class
+            if (loggedSednaGun.isEmpty() || !ItemStack.areItemStacksEqual(loggedSednaGun, heldStack)) {
+                LOGGER.info("Your held gun inherits ItemGunBaseSedna.class which don't expose damage variables, can't modify it. Your gun is: {}", heldStack);
+                /*
+                ItemGunBaseSedna gun = (ItemGunBaseSedna) player.getHeldItemMainhand().getItem();
+                configSedna = gun.mainConfig;
+                gun.getMagType()*/
+                loggedSednaGun = heldStack.copy();
+            }
+        }
 
         if (heldStack.getItem() instanceof ItemGunBaseNT) {
             if (!modified || !ItemStack.areItemStacksEqual(modifiedGun, heldStack)) {
