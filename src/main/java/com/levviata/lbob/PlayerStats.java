@@ -1,9 +1,10 @@
 package com.levviata.lbob;
 
 import com.hbm.handler.GunConfigurationSedna;
-import com.hbm.items.weapon.sedna.GunConfig;
-import com.hbm.items.weapon.sedna.ItemGunBaseNT;
-import com.hbm.items.weapon.sedna.ItemGunBaseSedna;
+import com.hbm.inventory.RecipesCommon;
+import com.hbm.items.ModItems;
+import com.hbm.items.weapon.sedna.*;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.IAttributeInstance;
@@ -14,14 +15,12 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.scoreboard.IScoreCriteria;
 import net.minecraft.scoreboard.Score;
 import net.minecraft.scoreboard.ScoreObjective;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
-import com.hbm.items.weapon.sedna.Receiver;
 
 import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.UUID;
+import java.util.*;
 
 import static com.levviata.lbob.LeviathanPlayerAttributes.scoreboard;
 import static com.levviata.lbob.PlayerUseBobblehead.*;
@@ -50,32 +49,6 @@ public class PlayerStats {
             UUID.fromString("18b4f6d0-8ec1-4cba-a57e-52d6f83a7808");
     public static final String nameIn = "Lev Attribute Modifier";
 
-    // strength
-    public static final String ATTACK_DAMAGE_TAG = "Lattack_damage"; // int
-    public static final String ATTACK_DAMAGE_BONUS_TAG = "Lattack_damage_bonus"; // boolean
-
-    // perception
-    public static final String GUN_ACCURACY_TAG = "Lgun_accuracy"; // int
-    public static final String NIGHT_VISION_TAG = "Lnight_vision"; // boolean
-
-    // endurance
-    public static final String MAX_HEALTH_TAG = "Lmax_health"; // double
-    public static final String MAX_HEALTH_BONUS_TAG = "Lmax_health_bonus"; // boolean
-
-    // charisma
-    public static final String ARMOR_TAG = "Larmor";
-    public static final String ARMOR_TOUGHNESS_TAG = "Larmor_toughness";
-
-    public static final String FOLLOW_RANGE_TAG = "Lfollow_range";
-    public static final String KNOCKBACK_RESISTANCE_TAG = "Lknockback_resistance";
-    public static final String MOVEMENT_SPEED_TAG = "Lmovement_speed";
-    public static final String FLYING_SPEED_TAG = "Lflying_speed";
-
-
-    public static final String GUN_DAMAGE_TAG = "Lgun_damage";
-    public static final String ATTACK_SPEED_TAG = "Lattack_speed";
-
-    public static final String LUCK_TAG = "Lluck";
 
     private int previousHealth = -1;
     private int previousCharisma = -1;
@@ -85,21 +58,24 @@ public class PlayerStats {
     private Receiver modifiedReceiverTwo;
     private float originalDamageOne;
     private float originalDamageTwo;
+    private int originalDelayOne;
+    private int originalDelayTwo;
+    private int originalProjectileAmountOne;
+    private int originalProjectileAmountTwo;
     private boolean modified;
 
-    private ItemStack loggedSednaGun = ItemStack.EMPTY;
+    private int timer;
 
-    /*
-    float receiverOneLastDmg = -1;
-    float receiverTwoLastDmg = -1;
-    boolean hasTwoReceivers = false;
-    boolean gotBaseDmg = false;
-    boolean isResetDamage = false;*/
+    private ItemStack loggedSednaGun = ItemStack.EMPTY;
 
     @SubscribeEvent
     public void onTick(TickEvent.PlayerTickEvent event) {
         if (event.phase != TickEvent.Phase.END) {
             return;
+        }
+        timer++;
+        if (timer > 20) {
+            timer = 0;
         }
 
         boolean hasRunStrength = false;
@@ -183,8 +159,8 @@ public class PlayerStats {
         Score intelligenceScore = scoreboard.getOrCreateScore(player.getName(), objIntelligence);
 
         // idea,
-        // perk 5 1 more projectile per 5 shots,
-        // perk 10 right and left duals interchange with double damage on each shot every 5 shots with 1 more projectile,
+        // perk 5 1 more projectile per 5 shots and 10% damage pen
+        // perk 10 1 more projectile every shot with a 15% physical
         // single fire same
 
         ItemStack heldStack = player.getHeldItemMainhand();
@@ -219,17 +195,24 @@ public class PlayerStats {
                 Receiver[] receivers = config.getReceivers(heldStack);
 
                 modifiedReceiverOne = receivers[0];
+
                 originalDamageOne = modifiedReceiverOne.getBaseDamage(heldStack);
+                originalDelayOne = modifiedReceiverOne.getDelayAfterFire(heldStack);
+                originalProjectileAmountOne = modifiedReceiverOne.getRoundsPerCycle(heldStack);
 
-                modifiedReceiverOne.dmg(originalDamageOne + intelligenceScore.getScorePoints());
+                // 1
+                processReceiver(modifiedReceiverOne, originalDamageOne, originalDelayOne, originalProjectileAmountOne, intelligenceScore, heldStack, player);
 
+                // 2
                 modifiedReceiverTwo = null;
-
                 if (receivers.length > 1) {
                     modifiedReceiverTwo = receivers[1];
-                    originalDamageTwo = modifiedReceiverTwo.getBaseDamage(heldStack);
 
-                    modifiedReceiverTwo.dmg(originalDamageTwo + intelligenceScore.getScorePoints());
+                    originalDamageTwo = modifiedReceiverTwo.getBaseDamage(heldStack);
+                    originalDelayTwo = modifiedReceiverTwo.getDelayAfterFire(heldStack);
+                    originalProjectileAmountTwo = modifiedReceiverTwo.getRoundsPerCycle(heldStack);
+
+                    processReceiver(modifiedReceiverTwo, originalDamageTwo, originalDelayTwo, originalProjectileAmountTwo, intelligenceScore, heldStack, player);
                 }
 
                 modifiedGun = heldStack.copy();
@@ -238,9 +221,13 @@ public class PlayerStats {
             }
         } else if (modified) {
             modifiedReceiverOne.dmg(originalDamageOne);
+            modifiedReceiverOne.delay(originalDelayOne);
+            modifiedReceiverOne.rounds(originalProjectileAmountOne);
 
             if (modifiedReceiverTwo != null) {
                 modifiedReceiverTwo.dmg(originalDamageTwo);
+                modifiedReceiverTwo.delay(originalDelayTwo);
+                modifiedReceiverTwo.rounds(originalProjectileAmountTwo);
             }
 
             modifiedGun = ItemStack.EMPTY;
@@ -248,6 +235,36 @@ public class PlayerStats {
             modifiedReceiverTwo = null;
             modified = false;
             //LOGGER.info("cleaned modifications from gun {}", modifiedGun);
+        }
+    }
+
+    private void processReceiver(Receiver recIn, float ogDmg, int ogDelay, int ogProjAmount, Score intelligenceScoreIn, ItemStack heldStackIn, EntityPlayer player) {
+        recIn.dmg(ogDmg + intelligenceScoreIn.getScorePoints());
+
+        BulletConfig bC = (BulletConfig) recIn.getMagazine(heldStackIn).getType(heldStackIn, player.inventory);
+
+
+        LOGGER.info(bC.ammo.getStack().getItem());
+        LOGGER.info(g);
+        if (Objects.equals(bC.ammo.getStack().getItem(), g)) {
+            LOGGER.info("gun is loaded with a 12 gauge");
+        }
+
+        int modifiedDelay = ogDelay - (intelligenceScoreIn.getScorePoints() / 10);
+
+        if (modifiedDelay > 0) {
+            if (recIn.getRefireOnHold(heldStackIn)) { // automatic
+                modifiedDelay = ogDelay - (intelligenceScoreIn.getScorePoints() / 100);
+            }
+            recIn.delay(modifiedDelay);
+        }
+        if (intelligenceScoreIn.getScorePoints() >= 5) {
+            if (heldStackIn != ItemStack.EMPTY) {
+                String rName = String.valueOf(heldStackIn.getItem().getRegistryName());
+                if (rName.equals("hbm:gun_pepperbox")) {
+                    recIn.rounds(6);
+                }
+            }
         }
     }
 }
