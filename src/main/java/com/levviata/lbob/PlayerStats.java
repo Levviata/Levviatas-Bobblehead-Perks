@@ -1,10 +1,8 @@
 package com.levviata.lbob;
 
-import com.hbm.handler.GunConfigurationSedna;
 import com.hbm.inventory.RecipesCommon;
 import com.hbm.items.ModItems;
 import com.hbm.items.weapon.sedna.*;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.IAttributeInstance;
@@ -15,12 +13,9 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.scoreboard.IScoreCriteria;
 import net.minecraft.scoreboard.Score;
 import net.minecraft.scoreboard.ScoreObjective;
-import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
-import org.jline.utils.Log;
 
-import java.lang.reflect.Field;
 import java.util.*;
 
 import static com.levviata.lbob.LeviathanPlayerAttributes.scoreboard;
@@ -63,6 +58,8 @@ public class PlayerStats {
     private int originalDelayTwo;
     private int originalProjectileAmountOne;
     private int originalProjectileAmountTwo;
+    private float originalAmmoPiercingOne;
+    private float originalAmmoPiercingTwo;
     private boolean modified;
 
     private int timer;
@@ -70,6 +67,7 @@ public class PlayerStats {
     private ItemStack loggedSednaGun = ItemStack.EMPTY;
 
     static List<Item> g = new ArrayList<>();
+    static List<String> r = new ArrayList<>();
     public static void init() {
         g.add(new RecipesCommon.ComparableStack(ModItems.ammo_standard, 1, 41).getStack().getItem());
         g.add(new RecipesCommon.ComparableStack(ModItems.ammo_standard, 1, 42).getStack().getItem());
@@ -85,6 +83,10 @@ public class PlayerStats {
         g.add(new RecipesCommon.ComparableStack(ModItems.ammo_standard, 1, 80).getStack().getItem());
         g.add(new RecipesCommon.ComparableStack(ModItems.ammo_standard, 1, 81).getStack().getItem());
         g.add(new RecipesCommon.ComparableStack(ModItems.ammo_standard, 1, 84).getStack().getItem());
+        r.add("hbm:gun_flaregun");
+        r.add("hbm:gun_heavy_revolver");
+        r.add("hbm:gun_light_revolver_atlas");
+        r.add("hbm:gun_light_revolver");
     }
 
 
@@ -216,23 +218,29 @@ public class PlayerStats {
 
                 modifiedReceiverOne = receivers[0];
 
+                BulletConfig bCOne = (BulletConfig) modifiedReceiverOne.getMagazine(heldStack).getType(heldStack, player.inventory);
+
+                originalAmmoPiercingOne = bCOne.armorPiercingPercent;
                 originalDamageOne = modifiedReceiverOne.getBaseDamage(heldStack);
                 originalDelayOne = modifiedReceiverOne.getDelayAfterFire(heldStack);
                 originalProjectileAmountOne = modifiedReceiverOne.getRoundsPerCycle(heldStack);
 
                 // 1
-                processReceiver(modifiedReceiverOne, originalDamageOne, originalDelayOne, originalProjectileAmountOne, intelligenceScore, heldStack, player);
+                processReceiver(modifiedReceiverOne, originalDamageOne, originalDelayOne, originalAmmoPiercingOne, intelligenceScore, heldStack, player);
 
                 // 2
                 modifiedReceiverTwo = null;
                 if (receivers.length > 1) {
                     modifiedReceiverTwo = receivers[1];
 
+                    BulletConfig bCTwo = (BulletConfig) modifiedReceiverTwo.getMagazine(heldStack).getType(heldStack, player.inventory);
+
+                    originalAmmoPiercingTwo = bCTwo.armorPiercingPercent;
                     originalDamageTwo = modifiedReceiverTwo.getBaseDamage(heldStack);
                     originalDelayTwo = modifiedReceiverTwo.getDelayAfterFire(heldStack);
                     originalProjectileAmountTwo = modifiedReceiverTwo.getRoundsPerCycle(heldStack);
 
-                    processReceiver(modifiedReceiverTwo, originalDamageTwo, originalDelayTwo, originalProjectileAmountTwo, intelligenceScore, heldStack, player);
+                    processReceiver(modifiedReceiverTwo, originalDamageTwo, originalDelayTwo, originalAmmoPiercingTwo, intelligenceScore, heldStack, player);
                 }
 
                 modifiedGun = heldStack.copy();
@@ -240,11 +248,18 @@ public class PlayerStats {
                 //LOGGER.info("modified gun {}", modifiedGun);
             }
         } else if (modified) {
+            BulletConfig bCOne = (BulletConfig) modifiedReceiverOne.getMagazine(heldStack).getType(heldStack, player.inventory);
+
+            bCOne.armorPiercingPercent = originalAmmoPiercingOne;
             modifiedReceiverOne.dmg(originalDamageOne);
             modifiedReceiverOne.delay(originalDelayOne);
             modifiedReceiverOne.rounds(originalProjectileAmountOne);
 
+
             if (modifiedReceiverTwo != null) {
+                BulletConfig bCTwo = (BulletConfig) modifiedReceiverTwo.getMagazine(heldStack).getType(heldStack, player.inventory);
+
+                bCTwo.armorPiercingPercent = originalAmmoPiercingTwo;
                 modifiedReceiverTwo.dmg(originalDamageTwo);
                 modifiedReceiverTwo.delay(originalDelayTwo);
                 modifiedReceiverTwo.rounds(originalProjectileAmountTwo);
@@ -258,12 +273,10 @@ public class PlayerStats {
         }
     }
 
-    private void processReceiver(Receiver recIn, float ogDmg, int ogDelay, int ogProjAmount, Score intelligenceScoreIn, ItemStack heldStackIn, EntityPlayer player) {
+    private void processReceiver(Receiver recIn, float ogDmg, int ogDelay, float ogPiercing, Score intelligenceScoreIn, ItemStack heldStackIn, EntityPlayer player) {
         recIn.dmg(ogDmg + intelligenceScoreIn.getScorePoints());
 
         BulletConfig bC = (BulletConfig) recIn.getMagazine(heldStackIn).getType(heldStackIn, player.inventory);
-
-
 
         /*LOGGER.info(bC.ammo.getStack().getItem());
         LOGGER.info(g);*/
@@ -276,19 +289,25 @@ public class PlayerStats {
         }*/
 
         if (modifiedDelay > 0) {
-            if (recIn.getRefireOnHold(heldStackIn) || g.contains(bC.ammo.getStack().getItem())) { // automatic or loaded with buckshots
+            if (recIn.getRefireOnHold(heldStackIn) || g.contains(bC.ammo.getStack().getItem())) { // automatic or loaded with buckshots (shotguns)
                 modifiedDelay = ogDelay - (intelligenceScoreIn.getScorePoints() / 100);
-                LOGGER.info("setting a nerfed delay");
+                //LOGGER.info("setting a nerfed delay");
             }
             recIn.delay(modifiedDelay);
-        } else {
+        } /*else {
             LOGGER.info("delay would be 0 or negative, not applying {}", modifiedDelay);
-        }
+        }*/
+
         if (intelligenceScoreIn.getScorePoints() >= 5) {
             if (heldStackIn != ItemStack.EMPTY) {
                 String rName = String.valueOf(heldStackIn.getItem().getRegistryName());
                 if (rName.equals("hbm:gun_pepperbox")) {
                     recIn.rounds(6);
+                }
+                if (r.contains(rName) ) { // match to all revolvers, thought of madness combat revolvers doing hell damage, so it's in
+                    int piercing = 25;
+                    bC.armorThresholdNegation = piercing;
+                    bC.armorPiercingPercent = ogPiercing + piercing; // since guns dont have piercing in their receivers, this adds onto the ammo's piercing
                 }
             }
         }
