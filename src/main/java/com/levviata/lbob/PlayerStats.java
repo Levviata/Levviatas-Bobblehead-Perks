@@ -18,6 +18,7 @@ import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import org.jline.utils.Log;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -67,6 +68,25 @@ public class PlayerStats {
     private int timer;
 
     private ItemStack loggedSednaGun = ItemStack.EMPTY;
+
+    static List<Item> g = new ArrayList<>();
+    public static void init() {
+        g.add(new RecipesCommon.ComparableStack(ModItems.ammo_standard, 1, 41).getStack().getItem());
+        g.add(new RecipesCommon.ComparableStack(ModItems.ammo_standard, 1, 42).getStack().getItem());
+        g.add(new RecipesCommon.ComparableStack(ModItems.ammo_standard, 1, 43).getStack().getItem());
+        g.add(new RecipesCommon.ComparableStack(ModItems.ammo_standard, 1, 44).getStack().getItem());
+        g.add(new RecipesCommon.ComparableStack(ModItems.ammo_standard, 1, 45).getStack().getItem());
+        g.add(new RecipesCommon.ComparableStack(ModItems.ammo_standard, 1, 46).getStack().getItem());
+        g.add(new RecipesCommon.ComparableStack(ModItems.ammo_standard, 1, 47).getStack().getItem());
+        g.add(new RecipesCommon.ComparableStack(ModItems.ammo_standard, 1, 48).getStack().getItem());
+        g.add(new RecipesCommon.ComparableStack(ModItems.ammo_standard, 1, 49).getStack().getItem());
+        g.add(new RecipesCommon.ComparableStack(ModItems.ammo_standard, 1, 78).getStack().getItem());
+        g.add(new RecipesCommon.ComparableStack(ModItems.ammo_standard, 1, 79).getStack().getItem());
+        g.add(new RecipesCommon.ComparableStack(ModItems.ammo_standard, 1, 80).getStack().getItem());
+        g.add(new RecipesCommon.ComparableStack(ModItems.ammo_standard, 1, 81).getStack().getItem());
+        g.add(new RecipesCommon.ComparableStack(ModItems.ammo_standard, 1, 84).getStack().getItem());
+    }
+
 
     @SubscribeEvent
     public void onTick(TickEvent.PlayerTickEvent event) {
@@ -244,19 +264,25 @@ public class PlayerStats {
         BulletConfig bC = (BulletConfig) recIn.getMagazine(heldStackIn).getType(heldStackIn, player.inventory);
 
 
-        LOGGER.info(bC.ammo.getStack().getItem());
-        LOGGER.info(g);
-        if (Objects.equals(bC.ammo.getStack().getItem(), g)) {
-            LOGGER.info("gun is loaded with a 12 gauge");
-        }
+
+        /*LOGGER.info(bC.ammo.getStack().getItem());
+        LOGGER.info(g);*/
 
         int modifiedDelay = ogDelay - (intelligenceScoreIn.getScorePoints() / 10);
 
+       /* if (g.contains(bC.ammo.getStack().getItem())) {
+            LOGGER.info("gun is loaded with a buckshot gauge");
+            modifiedDelay =
+        }*/
+
         if (modifiedDelay > 0) {
-            if (recIn.getRefireOnHold(heldStackIn)) { // automatic
+            if (recIn.getRefireOnHold(heldStackIn) || g.contains(bC.ammo.getStack().getItem())) { // automatic or loaded with buckshots
                 modifiedDelay = ogDelay - (intelligenceScoreIn.getScorePoints() / 100);
+                LOGGER.info("setting a nerfed delay");
             }
             recIn.delay(modifiedDelay);
+        } else {
+            LOGGER.info("delay would be 0 or negative, not applying {}", modifiedDelay);
         }
         if (intelligenceScoreIn.getScorePoints() >= 5) {
             if (heldStackIn != ItemStack.EMPTY) {
