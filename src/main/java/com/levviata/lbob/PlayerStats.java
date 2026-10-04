@@ -3,6 +3,7 @@ package com.levviata.lbob;
 import com.hbm.inventory.RecipesCommon;
 import com.hbm.items.ModItems;
 import com.hbm.items.weapon.sedna.*;
+import com.hbm.items.weapon.sedna.mags.IMagazine;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.IAttributeInstance;
@@ -95,16 +96,16 @@ public class PlayerStats {
         if (event.phase != TickEvent.Phase.END) {
             return;
         }
-        timer++;
-        if (timer > 20) {
-            timer = 0;
-        }
 
-        boolean hasRunStrength = false;
 
         EntityPlayer player = event.player;
 
-        if (player.getEntityWorld().isRemote) {
+        if (player.world == null || player.world.isRemote) {
+            return;
+        }
+
+        if (player.inventory == null) {
+            LOGGER.info("inv null top");
             return;
         }
 
@@ -275,8 +276,32 @@ public class PlayerStats {
 
     private void processReceiver(Receiver recIn, float ogDmg, int ogDelay, float ogPiercing, Score intelligenceScoreIn, ItemStack heldStackIn, EntityPlayer player) {
         recIn.dmg(ogDmg + intelligenceScoreIn.getScorePoints());
+/*
+        IMagazine magazine = recIn.getMagazine(heldStackIn);
+
+        if (magazine == null) {
+            LOGGER.info("mag null");
+            return;
+        }
+
+        Object type = magazine.getType(heldStackIn, player.inventory);
+
+        if (!(type instanceof BulletConfig)) {
+            LOGGER.info("bC null");
+            return;
+        }
+
+        if (player.inventory == null) {
+            LOGGER.info("inv null");
+            return;
+        }*/
 
         BulletConfig bC = (BulletConfig) recIn.getMagazine(heldStackIn).getType(heldStackIn, player.inventory);
+
+       /* if (bC == null) {
+            LOGGER.info("bulletconfig null");
+            return;
+        }*/
 
         /*LOGGER.info(bC.ammo.getStack().getItem());
         LOGGER.info(g);*/
@@ -289,17 +314,24 @@ public class PlayerStats {
         }*/
 
         if (modifiedDelay > 0) {
-            if (recIn.getRefireOnHold(heldStackIn) || g.contains(bC.ammo.getStack().getItem())) { // automatic or loaded with buckshots (shotguns)
-                modifiedDelay = ogDelay - (intelligenceScoreIn.getScorePoints() / 100);
+            int formula = ogDelay - (intelligenceScoreIn.getScorePoints() / 100);
+            if (recIn.getRefireOnHold(heldStackIn)) { // automatic
+                modifiedDelay = formula;
                 //LOGGER.info("setting a nerfed delay");
             }
-            recIn.delay(modifiedDelay);
-        } /*else {
-            LOGGER.info("delay would be 0 or negative, not applying {}", modifiedDelay);
-        }*/
+            if (bC.ammo != null) {
+                if (g.contains(bC.ammo.getStack().getItem())) { // loaded with buckshots (usually shotguns)
+                    modifiedDelay = formula;
+                }
+            }
+
+        } else {
+            modifiedDelay = 1;
+        }
+        recIn.delay(modifiedDelay);
 
         if (intelligenceScoreIn.getScorePoints() >= 5) {
-            if (heldStackIn != ItemStack.EMPTY) {
+            if (!heldStackIn.isEmpty()) {
                 String rName = String.valueOf(heldStackIn.getItem().getRegistryName());
                 if (rName.equals("hbm:gun_pepperbox")) {
                     recIn.rounds(6);
@@ -308,6 +340,8 @@ public class PlayerStats {
                     int piercing = 25;
                     bC.armorThresholdNegation = piercing;
                     bC.armorPiercingPercent = ogPiercing + piercing; // since guns dont have piercing in their receivers, this adds onto the ammo's piercing
+                    bC.doesPenetrate = true;
+                    bC.setHeadshot(2);
                 }
             }
         }
