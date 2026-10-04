@@ -138,13 +138,6 @@ public class PlayerStats {
             strength.removeModifier(ATTACK_DAMAGE_MODIFIER);
             double newDamage = damage + strengthScore.getScorePoints();
             strength.applyModifier(new AttributeModifier(ATTACK_DAMAGE_MODIFIER, nameIn, newDamage, 0));
-/*
-            for (int i = 0; i < stack.getTooltip(player, () -> false).size(); i++) {
-                if (stack.getTooltip(player, () -> false).get(i).contains("Damage")) {
-                    String s = newDamage + " Attack Damage";
-                    stack.getTooltip(player, () -> false).set(i, s);
-                }
-            }*/
         }
 
         // perception
@@ -192,10 +185,7 @@ public class PlayerStats {
             // to my knowledge, no guns inherit this class
             if (loggedSednaGun.isEmpty() || !ItemStack.areItemStacksEqual(loggedSednaGun, heldStack)) {
                 LOGGER.info("Your held gun inherits ItemGunBaseSedna.class which don't expose damage variables, can't modify it. Your gun is: {}", heldStack);
-                /*
-                ItemGunBaseSedna gun = (ItemGunBaseSedna) player.getHeldItemMainhand().getItem();
-                configSedna = gun.mainConfig;
-                gun.getMagType()*/
+
                 loggedSednaGun = heldStack.copy();
             }
         }
@@ -210,7 +200,6 @@ public class PlayerStats {
                     }
 
                     modified = false;
-                   // LOGGER.info("Cleaned modified gun in main hand {}", modifiedGun);
                 }
 
                 ItemGunBaseNT gun = (ItemGunBaseNT) heldStack.getItem();
@@ -246,7 +235,6 @@ public class PlayerStats {
 
                 modifiedGun = heldStack.copy();
                 modified = true;
-                //LOGGER.info("modified gun {}", modifiedGun);
             }
         } else if (modified) {
             BulletConfig bCOne = (BulletConfig) modifiedReceiverOne.getMagazine(heldStack).getType(heldStack, player.inventory);
@@ -270,48 +258,16 @@ public class PlayerStats {
             modifiedReceiverOne = null;
             modifiedReceiverTwo = null;
             modified = false;
-            //LOGGER.info("cleaned modifications from gun {}", modifiedGun);
         }
     }
 
     private void processReceiver(Receiver recIn, float ogDmg, int ogDelay, float ogPiercing, Score intelligenceScoreIn, ItemStack heldStackIn, EntityPlayer player) {
         recIn.dmg(ogDmg + intelligenceScoreIn.getScorePoints());
-/*
-        IMagazine magazine = recIn.getMagazine(heldStackIn);
-
-        if (magazine == null) {
-            LOGGER.info("mag null");
-            return;
-        }
-
-        Object type = magazine.getType(heldStackIn, player.inventory);
-
-        if (!(type instanceof BulletConfig)) {
-            LOGGER.info("bC null");
-            return;
-        }
-
-        if (player.inventory == null) {
-            LOGGER.info("inv null");
-            return;
-        }*/
 
         BulletConfig bC = (BulletConfig) recIn.getMagazine(heldStackIn).getType(heldStackIn, player.inventory);
 
-       /* if (bC == null) {
-            LOGGER.info("bulletconfig null");
-            return;
-        }*/
-
-        /*LOGGER.info(bC.ammo.getStack().getItem());
-        LOGGER.info(g);*/
-
         int modifiedDelay = ogDelay - (intelligenceScoreIn.getScorePoints() / 10);
 
-       /* if (g.contains(bC.ammo.getStack().getItem())) {
-            LOGGER.info("gun is loaded with a buckshot gauge");
-            modifiedDelay =
-        }*/
 
         if (modifiedDelay > 0) {
             int formula = ogDelay - (intelligenceScoreIn.getScorePoints() / 100);
