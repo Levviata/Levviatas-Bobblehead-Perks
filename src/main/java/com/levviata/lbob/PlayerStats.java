@@ -19,8 +19,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.*;
 
-import static com.levviata.lbob.LeviathanPlayerAttributes.scoreboard;
-import static com.levviata.lbob.PlayerUseBobblehead.*;
+import static com.levviata.lbob.LeviathanPlayerAttributes.*;
 import static com.levviata.lbob.LeviathanPlayerAttributes.LOGGER;
 
 public class PlayerStats {
@@ -46,7 +45,6 @@ public class PlayerStats {
             UUID.fromString("18b4f6d0-8ec1-4cba-a57e-52d6f83a7808");
     public static final String nameIn = "Lev Attribute Modifier";
 
-
     private int previousHealth = -1;
     private int previousCharisma = -1;
 
@@ -62,8 +60,6 @@ public class PlayerStats {
     private float originalAmmoPiercingOne;
     private float originalAmmoPiercingTwo;
     private boolean modified;
-
-    private int timer;
 
     private ItemStack loggedSednaGun = ItemStack.EMPTY;
 
@@ -84,6 +80,7 @@ public class PlayerStats {
         g.add(new RecipesCommon.ComparableStack(ModItems.ammo_standard, 1, 80).getStack().getItem());
         g.add(new RecipesCommon.ComparableStack(ModItems.ammo_standard, 1, 81).getStack().getItem());
         g.add(new RecipesCommon.ComparableStack(ModItems.ammo_standard, 1, 84).getStack().getItem());
+        g.add(new RecipesCommon.ComparableStack(ModItems.ammo_secret, 1, 3).getStack().getItem());
         r.add("hbm:gun_flaregun");
         r.add("hbm:gun_heavy_revolver");
         r.add("hbm:gun_light_revolver_atlas");
@@ -104,34 +101,18 @@ public class PlayerStats {
             return;
         }
 
-        if (player.inventory == null) {
-            LOGGER.info("inv null top");
-            return;
-        }
+        ItemStack heldStack = player.getHeldItemMainhand();
 
         scoreboard = player.getEntityWorld().getScoreboard();
 
-        if (scoreboard.getObjective(STRENGTH_BOARD) == null) {
-            scoreboard.addScoreObjective(STRENGTH_BOARD, IScoreCriteria.DUMMY);
-        }
-        if (scoreboard.getObjective(ENDURANCE_BOARD) == null) {
-            scoreboard.addScoreObjective(ENDURANCE_BOARD, IScoreCriteria.DUMMY);
-        }
-        if (scoreboard.getObjective(CHARISMA_BOARD) == null) {
-            scoreboard.addScoreObjective(CHARISMA_BOARD, IScoreCriteria.DUMMY);
-        }
-        if (scoreboard.getObjective(INTELLIGENCE_BOARD) == null) {
-            scoreboard.addScoreObjective(INTELLIGENCE_BOARD, IScoreCriteria.DUMMY);
-        }
+        // WARNING if the scores or scoreboards don't start, the mod is useless
+        startBoards();
+        startScores(player);
 
         // strength
-        ScoreObjective objStrength = scoreboard.getObjective(STRENGTH_BOARD);
-        Score strengthScore = scoreboard.getOrCreateScore(player.getName(), objStrength);
-
         IAttributeInstance strength = player.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE);
-        if (!player.getHeldItemMainhand().getAttributeModifiers(EntityEquipmentSlot.MAINHAND).get(SharedMonsterAttributes.ATTACK_DAMAGE.getName()).isEmpty()) {
-            ItemStack stack = player.getHeldItemMainhand();
-            Collection<AttributeModifier> damageCollection = stack.getAttributeModifiers(EntityEquipmentSlot.MAINHAND).get(SharedMonsterAttributes.ATTACK_DAMAGE.getName());
+        if (!heldStack.getAttributeModifiers(EntityEquipmentSlot.MAINHAND).get(SharedMonsterAttributes.ATTACK_DAMAGE.getName()).isEmpty()) {
+            Collection<AttributeModifier> damageCollection = heldStack.getAttributeModifiers(EntityEquipmentSlot.MAINHAND).get(SharedMonsterAttributes.ATTACK_DAMAGE.getName());
 
             double damage = 1 + damageCollection.iterator().next().getAmount();
 
@@ -144,20 +125,14 @@ public class PlayerStats {
         // todo gun accuracy stat logic
 
         // endurance
-        ScoreObjective objEndurance = scoreboard.getObjective(ENDURANCE_BOARD);
-        Score endurance = scoreboard.getOrCreateScore(player.getName(), objEndurance);
-
         IAttributeInstance maxHealth = player.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH);
-        if (endurance.getScorePoints() != previousHealth || player.getMaxHealth() != previousHealth) {
-            previousHealth = endurance.getScorePoints();
+        if (enduranceScore.getScorePoints() != previousHealth || player.getMaxHealth() != previousHealth) {
+            previousHealth = enduranceScore.getScorePoints();
             maxHealth.removeModifier(MAX_HEALTH_UUID);
-            maxHealth.applyModifier(new AttributeModifier(MAX_HEALTH_UUID, nameIn, endurance.getScorePoints(), 0));
+            maxHealth.applyModifier(new AttributeModifier(MAX_HEALTH_UUID, nameIn, enduranceScore.getScorePoints(), 0));
         }
 
         // charisma
-        ScoreObjective objCharisma = scoreboard.getObjective(CHARISMA_BOARD);
-        Score charismaScore = scoreboard.getOrCreateScore(player.getName(), objCharisma);
-
         IAttributeInstance armor = player.getEntityAttribute(SharedMonsterAttributes.ARMOR);
         IAttributeInstance armorToughness = player.getEntityAttribute(SharedMonsterAttributes.ARMOR_TOUGHNESS);
         if (charismaScore.getScorePoints() != previousCharisma) {
@@ -171,15 +146,11 @@ public class PlayerStats {
         }
 
         // intelligence
-        ScoreObjective objIntelligence = scoreboard.getObjective(INTELLIGENCE_BOARD);
-        Score intelligenceScore = scoreboard.getOrCreateScore(player.getName(), objIntelligence);
-
         // idea,
         // perk 5 1 more projectile per 5 shots and 10% damage pen
         // perk 10 1 more projectile every shot with a 15% physical
         // single fire same
 
-        ItemStack heldStack = player.getHeldItemMainhand();
 
         if (heldStack.getItem() instanceof ItemGunBaseSedna) {
             // to my knowledge, no guns inherit this class
@@ -280,22 +251,26 @@ public class PlayerStats {
                     modifiedDelay = formula;
                 }
             }
-
         } else {
-            modifiedDelay = 1;
+            modifiedDelay = 0;
         }
         recIn.delay(modifiedDelay);
 
-        if (intelligenceScoreIn.getScorePoints() >= 5) {
+        if (intelligenceScoreIn.getScorePoints() >= 5) { // lesser perk
             if (!heldStackIn.isEmpty()) {
                 String rName = String.valueOf(heldStackIn.getItem().getRegistryName());
                 if (rName.equals("hbm:gun_pepperbox")) {
                     recIn.rounds(6);
                 }
+            }
+        }
+        if (intelligenceScoreIn.getScorePoints() >= 10) { // higher perk
+            if (!heldStackIn.isEmpty()) {
+                String rName = String.valueOf(heldStackIn.getItem().getRegistryName());
                 if (r.contains(rName) ) { // match to all revolvers, thought of madness combat revolvers doing hell damage, so it's in
-                    int piercing = 25;
+                    /*int piercing = 25;
                     bC.armorThresholdNegation = piercing;
-                    bC.armorPiercingPercent = ogPiercing + piercing; // since guns dont have piercing in their receivers, this adds onto the ammo's piercing
+                    bC.armorPiercingPercent = ogPiercing + piercing; // since guns dont have piercing in their receivers, this adds onto the ammo's piercing*/
                     bC.doesPenetrate = true;
                     bC.setHeadshot(2);
                 }

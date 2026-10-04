@@ -1,29 +1,21 @@
 package com.levviata.lbob;
 
-import com.google.common.collect.Multimap;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.SharedMonsterAttributes;
-import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.entity.ai.attributes.IAttributeInstance;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.scoreboard.IScoreCriteria;
 import net.minecraft.scoreboard.Score;
 import net.minecraft.scoreboard.ScoreObjective;
+import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-import java.util.Collection;
 import java.util.Objects;
-import java.util.UUID;
-import java.util.logging.Logger;
 
 import static com.levviata.lbob.LeviathanPlayerAttributes.*;
-import static com.levviata.lbob.LBAttributeModifier.*;
 
 // this class provides flags that are used in LNBTMagic
 @Mod.EventBusSubscriber(modid = Tags.MOD_ID)
@@ -36,12 +28,7 @@ public class PlayerUseBobblehead {
     public static boolean usedAgilityBob = false;
     public static boolean usedLuckBob = false;
 
-    public static final String STRENGTH_BOARD = "Strength";
-    public static final String ENDURANCE_BOARD = "Endurance";
-    public static final String ENDURANCE_BONUS_BOARD = "EnduranceBonus";
-    public static final String CHARISMA_BOARD = "Charisma";
-    public static final String PERCEPTION_BOARD = "Perception";
-    public static final String INTELLIGENCE_BOARD = "Intelligence";
+    int funLimit = 10;
 
     @SubscribeEvent
     public void use(PlayerInteractEvent.RightClickItem event) {
@@ -56,76 +43,92 @@ public class PlayerUseBobblehead {
         ItemStack stack = event.getItemStack();
         EntityPlayer player = event.getEntityPlayer();
 
-        // i write to the player data with my desired tags, this is persistent as its stored to the disk (i think)
-        NBTTagCompound playerData = player.getEntityData();
-
         scoreboard = player.getEntityWorld().getScoreboard();
 
-        checkBob(stack, player, bob);
+        // WARNING if the scores or scoreboards don't start, the mod is useless
+        startBoards();
+        startScores(player);
 
-        addTags(player, playerData);
-    }
+        //LOGGER.error("Couldn't start the scoreboards, the mod is useless!");
 
-    private void checkBob(ItemStack stack, EntityPlayer player, ItemStack bob) {
-        // the goal is when a hbm:bobblehead is crouch right-clicked, I remove the item and I set a flag as true which is handled by LNBTMagic.class
+        // when a hbm:bobblehead is crouch right-clicked, I remove the item and set a flag as true
         if (stack.getItem().equals(bob.getItem()) && player.isSneaking()) {
-            LOGGER.info("conditions passed");
-            // String sa = Objects.requireNonNull(stack.get.;
-            //LOGGER.info("bob is {}", sa);
             switch (stack.getItemDamage()) {
                 case 1: {
-                    LOGGER.info("used strength bob");
-                    usedStrengthBob = true;
-                    stack.setCount(stack.getCount() - 1);
+                    if (strengthScore.getScorePoints() >= funLimit) {
+                        Minecraft.getMinecraft().ingameGUI.setOverlayMessage(new TextComponentString(LIMIT_MESSAGE), false);
+                    } else {
+                        usedStrengthBob = true;
+                        stack.setCount(stack.getCount() - 1);
+                    }
                     break;
                 }
                 case 2: {
-                    usedPerceptionBob = true;
-                    stack.setCount(stack.getCount() - 1);
+                    if (perceptionScore.getScorePoints() >= funLimit) {
+                        Minecraft.getMinecraft().ingameGUI.setOverlayMessage(new TextComponentString(LIMIT_MESSAGE), false);
+                    } else {
+                        usedPerceptionBob = true;
+                        stack.setCount(stack.getCount() - 1);
+                    }
                     break;
                 }
                 case 3: {
-                    LOGGER.info("used health bob");
-                    usedEnduranceBob = true;
-                    stack.setCount(stack.getCount() - 1);
+                    if (enduranceScore.getScorePoints() >= funLimit) {
+                        Minecraft.getMinecraft().ingameGUI.setOverlayMessage(new TextComponentString(LIMIT_MESSAGE), false);
+                    } else {
+                        usedEnduranceBob = true;
+                        stack.setCount(stack.getCount() - 1);
+                    }
                     break;
                 }
                 case 4: {
-                    usedCharismaBob = true;
-                    stack.setCount(stack.getCount() - 1);
+                    if (charismaScore.getScorePoints() >= funLimit) {
+                        Minecraft.getMinecraft().ingameGUI.setOverlayMessage(new TextComponentString(LIMIT_MESSAGE), false);
+                    } else {
+                        usedCharismaBob = true;
+                        stack.setCount(stack.getCount() - 1);
+                    }
                     break;
                 }
                 case 5: {
-                    usedIntelligenceBob = true;
-                    stack.setCount(stack.getCount() - 1);
+                    if (intelligenceScore.getScorePoints() >= funLimit) {
+                        Minecraft.getMinecraft().ingameGUI.setOverlayMessage(new TextComponentString(LIMIT_MESSAGE), false);
+                    } else {
+                        usedIntelligenceBob = true;
+                        stack.setCount(stack.getCount() - 1);
+                    }
                     break;
                 }
                 case 6: {
-                    usedAgilityBob = true;
-                    stack.setCount(stack.getCount() - 1);
+                    if (agilityScore.getScorePoints() >= funLimit) {
+                        Minecraft.getMinecraft().ingameGUI.setOverlayMessage(new TextComponentString(LIMIT_MESSAGE), false);
+                    } else {
+                        usedAgilityBob = true;
+                        stack.setCount(stack.getCount() - 1);
+                    }
                     break;
                 }
                 case 8: {
-                    usedLuckBob = true;
-                    stack.setCount(stack.getCount() - 1);
+                    if (luckScore.getScorePoints() >= funLimit) {
+                        Minecraft.getMinecraft().ingameGUI.setOverlayMessage(new TextComponentString(LIMIT_MESSAGE), false);
+                    } else {
+                        usedLuckBob = true;
+                        stack.setCount(stack.getCount() - 1);
+                    }
                     break;
                 }
             }
         }
-    }
 
-    private void addTags(EntityPlayer player, NBTTagCompound pDataIn) {
 
         // comes with stat increases then has perks at X amount consumed, usually 5 or 10
         // total fallout bobbleheads is 7
         if (usedStrengthBob) {
-            if (scoreboard.getObjective(STRENGTH_BOARD) == null) {
-                scoreboard.addScoreObjective(STRENGTH_BOARD, IScoreCriteria.DUMMY);
+            if (strengthScore.getScorePoints() < funLimit) {
+                strengthScore.setScorePoints(strengthScore.getScorePoints() + 1);
+            } else {
+                strengthScore.setScorePoints(funLimit);
             }
-
-            ScoreObjective objective = scoreboard.getObjective(STRENGTH_BOARD);
-            Score score = scoreboard.getOrCreateScore(player.getName(), objective);
-            score.setScorePoints(score.getScorePoints() + 1);
 
             usedStrengthBob = false;
         }
@@ -141,24 +144,20 @@ public class PlayerUseBobblehead {
         }
 
         if (usedEnduranceBob) {
-            if (scoreboard.getObjective(ENDURANCE_BOARD) == null) {
-                scoreboard.addScoreObjective(ENDURANCE_BOARD, IScoreCriteria.DUMMY);
-            }
-            if (scoreboard.getObjective(ENDURANCE_BONUS_BOARD) == null) {
-                scoreboard.addScoreObjective(ENDURANCE_BONUS_BOARD, IScoreCriteria.DUMMY);
-            }
 
-            ScoreObjective endBonusObj = scoreboard.getObjective(ENDURANCE_BONUS_BOARD);
-            Score enduranceBonus = scoreboard.getOrCreateScore(player.getName(), endBonusObj);
-
-            ScoreObjective objective = scoreboard.getObjective(ENDURANCE_BOARD);
-            Score endurance = scoreboard.getOrCreateScore(player.getName(), objective);
-
-            if (endurance.getScorePoints() >= 20 && enduranceBonus.getScorePoints() != 1) { // perk, 5 bobs
-                endurance.setScorePoints(endurance.getScorePoints() + 10);
-                enduranceBonus.setScorePoints(1);
+            if (enduranceScore.getScorePoints() >= 20 && enduranceBonusScore.getScorePoints() != 1) { // perk, 5 bobs
+                if (enduranceScore.getScorePoints() < funLimit) {
+                    enduranceScore.setScorePoints(enduranceScore.getScorePoints() + 10);
+                    enduranceBonusScore.setScorePoints(1);
+                } else {
+                    enduranceScore.setScorePoints(funLimit);
+                }
             } else {
-                endurance.setScorePoints(endurance.getScorePoints() + 4);
+                if (enduranceScore.getScorePoints() < funLimit) {
+                    enduranceScore.setScorePoints(enduranceScore.getScorePoints() + 4);
+                } else {
+                    enduranceScore.setScorePoints(funLimit);
+                }
             }
 
             usedEnduranceBob = false;
@@ -166,41 +165,34 @@ public class PlayerUseBobblehead {
 
         if (usedCharismaBob) { // plot armor
             // todo perk
-
-            if (scoreboard.getObjective(CHARISMA_BOARD) == null) {
-                scoreboard.addScoreObjective(CHARISMA_BOARD, IScoreCriteria.DUMMY);
+            if (charismaScore.getScorePoints() < funLimit) {
+                charismaScore.setScorePoints(charismaScore.getScorePoints() + 1);
+            } else {
+                charismaScore.setScorePoints(funLimit);
             }
 
-            ScoreObjective objective = scoreboard.getObjective(CHARISMA_BOARD);
-            Score score = scoreboard.getOrCreateScore(player.getName(), objective);
-            score.setScorePoints(score.getScorePoints() + 1);
-            
             usedCharismaBob = false;
         }
 
         if (usedIntelligenceBob) { // increases gun damage
-            if (scoreboard.getObjective(INTELLIGENCE_BOARD) == null) {
-                scoreboard.addScoreObjective(INTELLIGENCE_BOARD, IScoreCriteria.DUMMY);
+            // limits
+            if (intelligenceScore.getScorePoints() < funLimit) {
+                intelligenceScore.setScorePoints(intelligenceScore.getScorePoints() + 1);
+            } else {
+                intelligenceScore.setScorePoints(funLimit);
             }
-
-            ScoreObjective objective = scoreboard.getObjective(INTELLIGENCE_BOARD);
-            Score score = scoreboard.getOrCreateScore(player.getName(), objective);
-            score.setScorePoints(score.getScorePoints() + 1);
 
             usedIntelligenceBob = false;
         }
 
 
         if (usedAgilityBob) { // percentage
-            //pDataIn.setFloat(MOVEMENT_SPEED_TAG, pDataIn.getFloat(MOVEMENT_SPEED_TAG) + 0.05F); // +5% movement speed
-
             // todo keybind for tweaking current move speed after acquiring 5 agility bob
 
             usedAgilityBob = false;
         }
 
         if (usedLuckBob) { // increases the chance of reloading rounds for free,
-            //pDataIn.setInteger(LUCK_TAG, pDataIn.getInteger(LUCK_TAG) + 1);
 
             usedAgilityBob = false;
         }
