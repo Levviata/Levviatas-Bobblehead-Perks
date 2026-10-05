@@ -17,6 +17,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.*;
 
+import static com.levviata.lbob.CommandSetSpeed.getPlayerSpeed;
 import static com.levviata.lbob.LSPECIALMod.LOGGER;
 import static com.levviata.lbob.proxy.ClientProxy.*;
 
@@ -149,17 +150,34 @@ public class StatsLogic {
         // agility
         // todo 0.5 increases for flight speed, also needs attribute modifier fly speed fix
         IAttributeInstance movementSpeed = player.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED);
-        if (agilityScore.getScorePoints() != previousAgility) {
-            previousAgility = agilityScore.getScorePoints();
+        if (agilityScore.getScorePoints() != previousAgility || getPlayerSpeed(player) != -1 && agilityScore.getScorePoints() != getPlayerSpeed(player)) {
+            if (getPlayerSpeed(player) > -1) {
+                previousAgility = getPlayerSpeed(player);
+            } else {
+                previousAgility = agilityScore.getScorePoints();
+            }
+
 
             movementSpeed.removeModifier(MOVEMENT_SPEED_UUID);
 
             // operationIn: multiplicative
             // 7.5% increase per point up to 75%
-            movementSpeed.applyModifier(new AttributeModifier(MOVEMENT_SPEED_UUID, nameIn, agilityScore.getScorePoints() * 0.075D, 1));
+            if (getPlayerSpeed(player) > -1) { // /velocity
+                movementSpeed.applyModifier(new AttributeModifier(MOVEMENT_SPEED_UUID, nameIn, getPlayerSpeed(player) * 0.075D, 1));
+                //LOGGER.info("player speed is: {}", getPlayerSpeed(player));
+            } else {
+                movementSpeed.applyModifier(new AttributeModifier(MOVEMENT_SPEED_UUID, nameIn, agilityScore.getScorePoints() * 0.075D, 1));
+                //LOGGER.info("normal speed in");
+            }
         }
 
         // perception, intelligence, and luck
+        // todo make perception increase found loot
+
+        if (intelligenceScore.getScorePoints() >= 5) {
+            heldStack.getItem().setMaxDamage(-1);
+
+        }
 
         if (heldStack.getItem() instanceof ItemGunBaseSedna) {
             // to my knowledge, no guns inherit this class
@@ -182,6 +200,10 @@ public class StatsLogic {
                 Receiver[] receivers = config.getReceivers(heldStack);
 
                 // 1
+                if (intelligenceScore.getScorePoints() >= 5) {
+                    ItemGunBaseNT.setWear(heldStack, 0, config.getDurability(heldStack));
+                }
+
                 modifiedReceiverOne = receivers[0];
 
                 BulletConfig bCOne = (BulletConfig) modifiedReceiverOne.getMagazine(heldStack).getType(heldStack, player.inventory);
@@ -198,11 +220,15 @@ public class StatsLogic {
                     }
                 }
 
-                processReceiver(modifiedReceiverOne, originalDamageOne, originalDelayOne, originalAmmoPiercingOne, intelligenceScore, heldStack, player);
+                processReceiver(modifiedReceiverOne, originalDamageOne, originalDelayOne, heldStack, player);
 
                 // 2
                 modifiedReceiverTwo = null;
                 if (receivers.length > 1) {
+                    if (intelligenceScore.getScorePoints() >= 5) {
+                        ItemGunBaseNT.setWear(heldStack, 1, config.getDurability(heldStack));
+                    }
+
                     modifiedReceiverTwo = receivers[1];
 
                     BulletConfig bCTwo = (BulletConfig) modifiedReceiverTwo.getMagazine(heldStack).getType(heldStack, player.inventory);
@@ -219,7 +245,7 @@ public class StatsLogic {
                         }
                     }
 
-                    processReceiver(modifiedReceiverTwo, originalDamageTwo, originalDelayTwo, originalAmmoPiercingTwo, intelligenceScore, heldStack, player);
+                    processReceiver(modifiedReceiverTwo, originalDamageTwo, originalDelayTwo, heldStack, player);
                 }
 
                 modifiedGun = heldStack.copy();
@@ -231,8 +257,9 @@ public class StatsLogic {
         }
     }
 
-    private void processReceiver(Receiver recIn, float ogDmg, int ogDelay, float ogPiercing, Score intelligenceScoreIn, ItemStack heldStackIn, EntityPlayer player) {
-        recIn.dmg(ogDmg + intelligenceScoreIn.getScorePoints());
+    private void processReceiver(Receiver recIn, float ogDmg, int ogDelay, ItemStack heldStackIn, EntityPlayer player) {
+        recIn.dmg(ogDmg + perceptionScore.getScorePoints());
+        //LOGGER.info(recIn.getInnateSpread(heldStackIn));
 
         BulletConfig bC = (BulletConfig) recIn.getMagazine(heldStackIn).getType(heldStackIn, player.inventory);
         if (bC.ammo != null) {
@@ -246,11 +273,11 @@ public class StatsLogic {
             ammoStack = ItemStack.EMPTY;
         }
 
-        int modifiedDelay = ogDelay - (intelligenceScoreIn.getScorePoints() / 10);
+        int modifiedDelay = ogDelay - (intelligenceScore.getScorePoints() / 10);
 
         if (modifiedDelay > 0) {
-            int formula = ogDelay - (intelligenceScoreIn.getScorePoints() / 100);
-            if (recIn.getRefireOnHold(heldStackIn) || g.contains(ammoStack.getItem())) { // automatic or loaded with buckshots (usually shotguns)
+            int formula = ogDelay - (intelligenceScore.getScorePoints() / 100);
+            if (/*recIn.getRefireOnHold(heldStackIn) ||*/ g.contains(ammoStack.getItem())) { // automatic or loaded with buckshots (usually shotguns)
                 modifiedDelay = formula;
                 //LOGGER.info("setting a nerfed delay");
             }
@@ -259,7 +286,8 @@ public class StatsLogic {
         }
         recIn.delay(modifiedDelay);
 
-        if (intelligenceScoreIn.getScorePoints() >= 5) { // lesser perk
+        if (intelligenceScore.getScorePoints() >= 5) { // lesser perk
+            recIn.auto(true);
             if (!heldStackIn.isEmpty()) {
                 String rName = String.valueOf(heldStackIn.getItem().getRegistryName());
                 if (rName.equals("hbm:gun_pepperbox")) {
@@ -267,7 +295,7 @@ public class StatsLogic {
                 }
             }
         }
-        if (intelligenceScoreIn.getScorePoints() >= 10) { // higher perk
+        if (intelligenceScore.getScorePoints() >= 10) { // higher perk
             if (!heldStackIn.isEmpty()) {
                 String rName = String.valueOf(heldStackIn.getItem().getRegistryName());
                 if (r.contains(rName) ) { // match to all revolvers, thought of madness combat revolvers doing hell damage, so it's in
