@@ -1,5 +1,5 @@
 {
-	"package": "com.levviata.lbob.mixin",
+	"package": "",
 	"required": false,
 	"refmap": "mixins.lbob.refmap.json",
 	"target": "@env(DEFAULT)",
