@@ -39,8 +39,6 @@ dependencies {
     // Include OSXNarratorBlocker by default for the dev env, for M1+ Macs
     runtimeOnly 'com.cleanroommc:osxnarratorblocker:1.0'
 
-    implementation 'curse.maven:expanded-events-1396395:8204032'
-
     implementation 'curse.maven:hbm-nuclear-tech-mod-community-edition-1312314:8873889'
 
     // Example - Dependency descriptor:
