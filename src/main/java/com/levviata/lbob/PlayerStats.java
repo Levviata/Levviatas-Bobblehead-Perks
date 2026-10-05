@@ -58,10 +58,13 @@ public class PlayerStats {
     private float originalAmmoPiercingTwo;
     private int originalReloadAmountOne;
     private int originalReloadAmountTwo;
-    private int ammoDebt = -1;
     private int originalAmountAfterReload;
     private int originalAmountBeforeReload;
+    private int ammoDebt = -1;
     private int lastAmmoDebt;
+    private int originalStack;
+    private ItemStack ammoStack = ItemStack.EMPTY;
+    private ItemStack lastAmmoStack = ItemStack.EMPTY;
     private int ammoRefilled;
     private boolean hasRefunded;
     private boolean modified;
@@ -167,6 +170,7 @@ public class PlayerStats {
                 if (modified) {
                     cleanGun(heldStack, player);
                     lastAmmoDebt = originalAmountAfterReload - originalAmountBeforeReload;
+                    lastAmmoStack = ammoStack;
                 }
 
                 ItemGunBaseNT gun = (ItemGunBaseNT) heldStack.getItem();
@@ -201,6 +205,7 @@ public class PlayerStats {
             //clean for next cycle
             cleanGun(heldStack, player);
             lastAmmoDebt = originalAmountAfterReload - originalAmountBeforeReload;
+            lastAmmoStack = ammoStack;
         }
     }
 
@@ -208,19 +213,24 @@ public class PlayerStats {
         recIn.dmg(ogDmg + intelligenceScoreIn.getScorePoints());
 
         BulletConfig bC = (BulletConfig) recIn.getMagazine(heldStackIn).getType(heldStackIn, player.inventory);
+        if (bC.ammo != null) {
+            ItemStack c = bC.ammo.getStack();
+
+            ammoStack = player.inventory.mainInventory.stream()
+                    .filter(stack -> stack.getItem() == c.getItem())
+                    .findFirst()
+                    .orElse(ItemStack.EMPTY);
+        } else {
+            ammoStack = ItemStack.EMPTY;
+        }
 
         int modifiedDelay = ogDelay - (intelligenceScoreIn.getScorePoints() / 10);
 
         if (modifiedDelay > 0) {
             int formula = ogDelay - (intelligenceScoreIn.getScorePoints() / 100);
-            if (recIn.getRefireOnHold(heldStackIn)) { // automatic
+            if (recIn.getRefireOnHold(heldStackIn) || g.contains(ammoStack.getItem())) { // automatic or loaded with buckshots (usually shotguns)
                 modifiedDelay = formula;
                 //LOGGER.info("setting a nerfed delay");
-            }
-            if (bC.ammo != null) {
-                if (g.contains(bC.ammo.getStack().getItem())) { // loaded with buckshots (usually shotguns)
-                    modifiedDelay = formula;
-                }
             }
         } else {
             modifiedDelay = 0;
@@ -252,10 +262,10 @@ public class PlayerStats {
             }
         }
 
-        ItemStack ammo = bC.ammo.getStack();
+
         boolean refundAmmo = !hasRefunded; //&& Math.random() < Math.min(luckScore.getScorePoints() * 0.05, 0.5); // for every luck point, add 5% chance to refundAmmo, up to 50%
 
-        ItemStack newAmmo = ammo.copy();
+        ItemStack newAmmo = ammoStack.copy();
         // i am this ammo in debt
         ammoDebt = Math.abs(recIn.getMagazine(heldStackIn).getAmountBeforeReload(heldStackIn) - recIn.getMagazine(heldStackIn).getAmountAfterReload(heldStackIn));
 
@@ -263,18 +273,28 @@ public class PlayerStats {
         // my debt should be satiated and only once, until my debt changes,
         // if it changes it has not been satiated
         if (ammoDebt > 0) { // if i have debt
-            if (ammoDebt != lastAmmoDebt && refundAmmo) {
+            if (ammoDebt != lastAmmoDebt && refundAmmo) { // if my debt has changed and i should refundAmmo || ammo count is not lastAmmo count
+                newAmmo.setCount(ammoDebt);
+                player.inventory.addItemStackToInventory(newAmmo);
+
+                ammoDebt = 0; // i have solved the debt
+                lastAmmoDebt = 0;
+                hasRefunded = true;
+                LOGGER.info("refunded 1");
+                LOGGER.info("originalAmmoDebt {} and ammoDebt {}", lastAmmoDebt, ammoDebt);
+            } /*else if (ammoDebt == lastAmmoDebt && ammoStack.getCount() != lastAmmoStack.getCount() && refundAmmo) {
                 newAmmo.setCount(ammoDebt);
                 player.inventory.addItemStackToInventory(newAmmo);
 
                 ammoDebt = 0; // i have solved the debt
                 hasRefunded = true;
-                LOGGER.info("refunded");
-                LOGGER.info("originalAmmoDebt {} and ammoDebt {}", lastAmmoDebt, ammoDebt);
-            } else {
-                hasRefunded = false;
+                LOGGER.info("refunded 2");
                 /*LOGGER.info("not refunded");
-                LOGGER.info("originalAmmoDebt {} and ammoDebt {}", lastAmmoDebt, ammoDebt);*/
+                LOGGER.info("originalAmmoDebt {} and ammoDebt {}", lastAmmoDebt, ammoDebt);
+            } */else {
+                /*LOGGER.info(ammoStack.getCount());
+                LOGGER.info(lastAmmoStack.getCount());*/
+                hasRefunded = false;
             }
         } else { // its has been solved
             hasRefunded = true;
@@ -295,7 +315,7 @@ public class PlayerStats {
         /*LOGGER.info(c);
         LOGGER.info(b);
         LOGGER.info(a);*/
-        int c = ammo.getCount(); // og ammo
+       // int c = ammo.getCount(); // og ammo
 
        /* if (ammoDebt > 0 && refundAmmo) { // if i have debt and i should refund ammo
 
@@ -335,6 +355,7 @@ public class PlayerStats {
             modifiedReceiverTwo.rounds(originalProjectileAmountTwo);
         }
 
+        originalStack = 0;
         ammoDebt = 0;
         modifiedGun = ItemStack.EMPTY;
         modifiedReceiverOne = null;
