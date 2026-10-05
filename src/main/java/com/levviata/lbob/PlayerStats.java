@@ -3,11 +3,14 @@ package com.levviata.lbob;
 import com.hbm.inventory.RecipesCommon;
 import com.hbm.items.ModItems;
 import com.hbm.items.weapon.sedna.*;
+import com.hbm.items.weapon.sedna.mags.IMagazine;
+import com.hbm.particle.SpentCasing;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.IAttributeInstance;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.EntityEquipmentSlot;
+import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.scoreboard.Score;
@@ -20,27 +23,28 @@ import static com.levviata.lbob.LeviathanPlayerAttributes.*;
 import static com.levviata.lbob.LeviathanPlayerAttributes.LOGGER;
 
 public class PlayerStats {
+    // todo add uuid getter helper from attribute modifier
     //vanilla uuids
     private static final UUID ATTACK_DAMAGE_MODIFIER = UUID.fromString("CB3F55D3-645C-4F38-A497-9C13A33DB5CF");
     private static final UUID ATTACK_SPEED_MODIFIER = UUID.fromString("FA233E1C-4180-4865-B01B-BCCE9785ACA3");
     // randomized uuids, same UUIDs as my mod Attribute Modifier
-    public static final UUID MAX_HEALTH_UUID =
+    private static final UUID MAX_HEALTH_UUID =
             UUID.fromString("5b94c2f0-6a6e-4b7d-9f6f-8d2a4d7c1e01");
     private static final UUID FOLLOW_RANGE_UUID =
             UUID.fromString("7d31a6c2-15bb-47d5-aef5-3c94a87f3202");
     private static final UUID KNOCKBACK_RESISTANCE_UUID =
             UUID.fromString("93ef45e8-12c0-4f17-8c3e-61d2a94b5f03");
-    public static final UUID MOVEMENT_SPEED_UUID =
+    private static final UUID MOVEMENT_SPEED_UUID =
             UUID.fromString("b7d3a6f9-58d4-4b2f-a0f7-9c13e4d8a904");
     private static final UUID FLYING_SPEED_UUID =
             UUID.fromString("d2f9c781-7b48-4c81-93ae-0d7f2b6e1505");
-    public static final UUID ARMOR_UUID =
+    private static final UUID ARMOR_UUID =
             UUID.fromString("e5a14d92-4f33-4d0f-b1ce-7a8d0f2c3606");
-    public static final UUID ARMOR_TOUGHNESS_UUID =
+    private static final UUID ARMOR_TOUGHNESS_UUID =
             UUID.fromString("f84c7b13-2d75-4d8b-9ef4-4b0a91d54707");
-    public static final UUID LUCK_UUID =
+    private static final UUID LUCK_UUID =
             UUID.fromString("18b4f6d0-8ec1-4cba-a57e-52d6f83a7808");
-    public static final String nameIn = "Lev Attribute Modifier";
+    private static final String nameIn = "Lev Attribute Modifier";
 
     private int previousHealth = -1;
     private int previousCharisma = -1;
@@ -56,18 +60,12 @@ public class PlayerStats {
     private int originalProjectileAmountTwo;
     private float originalAmmoPiercingOne;
     private float originalAmmoPiercingTwo;
-    private int originalReloadAmountOne;
-    private int originalReloadAmountTwo;
-    private int originalAmountAfterReload;
-    private int originalAmountBeforeReload;
-    private int ammoDebt = -1;
-    private int lastAmmoDebt;
-    private int originalStack;
     private ItemStack ammoStack = ItemStack.EMPTY;
-    private ItemStack lastAmmoStack = ItemStack.EMPTY;
-    private int ammoRefilled;
-    private boolean hasRefunded;
     private boolean modified;
+    private boolean installedMagazineOne;
+    private boolean installedMagazineTwo;
+    private IMagazine originalMagazineOne;
+    private IMagazine originalMagazineTwo;
 
     private ItemStack loggedSednaGun = ItemStack.EMPTY;
 
@@ -94,7 +92,6 @@ public class PlayerStats {
         r.add("hbm:gun_light_revolver_atlas");
         r.add("hbm:gun_light_revolver");
     }
-
 
     @SubscribeEvent
     public void onTick(TickEvent.PlayerTickEvent event) {
@@ -169,8 +166,6 @@ public class PlayerStats {
                 // clean for this cycle
                 if (modified) {
                     cleanGun(heldStack, player);
-                    lastAmmoDebt = originalAmountAfterReload - originalAmountBeforeReload;
-                    lastAmmoStack = ammoStack;
                 }
 
                 ItemGunBaseNT gun = (ItemGunBaseNT) heldStack.getItem();
@@ -184,6 +179,16 @@ public class PlayerStats {
 
                 setOriginalValues(bCOne, modifiedReceiverOne, heldStack, true);
 
+                if (!installedMagazineOne) {
+                    if (luckScore.getScorePoints() > 0) { // if i have luck, install a magazine that can refund bullets
+                        modifiedReceiverOne.mag(
+                                new RefundMagazine(originalMagazineOne)
+                        );
+
+                        installedMagazineOne = true;
+                    }
+                }
+
                 processReceiver(modifiedReceiverOne, originalDamageOne, originalDelayOne, originalAmmoPiercingOne, intelligenceScore, heldStack, player);
 
                 // 2
@@ -195,6 +200,16 @@ public class PlayerStats {
 
                     setOriginalValues(bCTwo, modifiedReceiverTwo, heldStack, false);
 
+                    if (!installedMagazineTwo) {
+                        if (luckScore.getScorePoints() > 0) { // if i have luck, install a magazine that can refund bullets
+                            modifiedReceiverTwo.mag(
+                                    new RefundMagazine(originalMagazineTwo)
+                            );
+
+                            installedMagazineTwo = true;
+                        }
+                    }
+                    
                     processReceiver(modifiedReceiverTwo, originalDamageTwo, originalDelayTwo, originalAmmoPiercingTwo, intelligenceScore, heldStack, player);
                 }
 
@@ -204,8 +219,6 @@ public class PlayerStats {
         } else if (modified) {
             //clean for next cycle
             cleanGun(heldStack, player);
-            lastAmmoDebt = originalAmountAfterReload - originalAmountBeforeReload;
-            lastAmmoStack = ammoStack;
         }
     }
 
@@ -237,10 +250,6 @@ public class PlayerStats {
         }
         recIn.delay(modifiedDelay);
 
-        /*if (Math.random() < Math.min(luckScore.getScorePoints() * 0.05, 0.5)) {
-
-        }*/
-
         if (intelligenceScoreIn.getScorePoints() >= 5) { // lesser perk
             if (!heldStackIn.isEmpty()) {
                 String rName = String.valueOf(heldStackIn.getItem().getRegistryName());
@@ -261,102 +270,30 @@ public class PlayerStats {
                 }
             }
         }
-
-
-        boolean refundAmmo = !hasRefunded; //&& Math.random() < Math.min(luckScore.getScorePoints() * 0.05, 0.5); // for every luck point, add 5% chance to refundAmmo, up to 50%
-
-        ItemStack newAmmo = ammoStack.copy();
-        // i am this ammo in debt
-        ammoDebt = Math.abs(recIn.getMagazine(heldStackIn).getAmountBeforeReload(heldStackIn) - recIn.getMagazine(heldStackIn).getAmountAfterReload(heldStackIn));
-
-        // im always in debt,
-        // my debt should be satiated and only once, until my debt changes,
-        // if it changes it has not been satiated
-        if (ammoDebt > 0) { // if i have debt
-            if (ammoDebt != lastAmmoDebt && refundAmmo) { // if my debt has changed and i should refundAmmo || ammo count is not lastAmmo count
-                newAmmo.setCount(ammoDebt);
-                player.inventory.addItemStackToInventory(newAmmo);
-
-                ammoDebt = 0; // i have solved the debt
-                lastAmmoDebt = 0;
-                hasRefunded = true;
-                LOGGER.info("refunded 1");
-                LOGGER.info("originalAmmoDebt {} and ammoDebt {}", lastAmmoDebt, ammoDebt);
-            } /*else if (ammoDebt == lastAmmoDebt && ammoStack.getCount() != lastAmmoStack.getCount() && refundAmmo) {
-                newAmmo.setCount(ammoDebt);
-                player.inventory.addItemStackToInventory(newAmmo);
-
-                ammoDebt = 0; // i have solved the debt
-                hasRefunded = true;
-                LOGGER.info("refunded 2");
-                /*LOGGER.info("not refunded");
-                LOGGER.info("originalAmmoDebt {} and ammoDebt {}", lastAmmoDebt, ammoDebt);
-            } */else {
-                /*LOGGER.info(ammoStack.getCount());
-                LOGGER.info(lastAmmoStack.getCount());*/
-                hasRefunded = false;
-            }
-        } else { // its has been solved
-            hasRefunded = true;
-        }
-/*
-        if (ammoUsed == 0) {
-            ammoRefunded = false;
-            LOGGER.info("cleaning variables");
-        }*/
-
-        /*//LOGGER.info(refundAmmo);
-        if (ammoUsed != 0)
-            LOGGER.info("ammoUsed: {}",ammoUsed);
-        //LOGGER.info("ammoRefilled: {}",ammoRefilled);
-        LOGGER.info("ammoRefunded: {}",ammoRefunded);*/
-
-
-        /*LOGGER.info(c);
-        LOGGER.info(b);
-        LOGGER.info(a);*/
-       // int c = ammo.getCount(); // og ammo
-
-       /* if (ammoDebt > 0 && refundAmmo) { // if i have debt and i should refund ammo
-
-            hasRefunded = true;
-
-            LOGGER.info("i added the ammo back");
-        } else if (newAmmo.getCount() == c && ammoDebt == 0) {
-            hasRefunded = false;
-            LOGGER.info("not adding");
-        }*/
-/*
-        int b = ; // ammo without bullets refunded
-        boolean a = b == c;
-        if (a) {
-            hasRefunded = false;
-            LOGGER.info("miracle");
-        }*/
     }
     public void cleanGun(ItemStack heldStack, EntityPlayer player) {
         // 1
         BulletConfig bCOne = (BulletConfig) modifiedReceiverOne.getMagazine(heldStack).getType(heldStack, player.inventory);
 
         bCOne.armorPiercingPercent = originalAmmoPiercingOne;
-        bCOne.ammoReloadCount = originalReloadAmountOne;
         modifiedReceiverOne.dmg(originalDamageOne);
         modifiedReceiverOne.delay(originalDelayOne);
         modifiedReceiverOne.rounds(originalProjectileAmountOne);
+        modifiedReceiverOne.mag(originalMagazineOne);
 
         // 2
         if (modifiedReceiverTwo != null) {
             BulletConfig bCTwo = (BulletConfig) modifiedReceiverTwo.getMagazine(heldStack).getType(heldStack, player.inventory);
 
             bCTwo.armorPiercingPercent = originalAmmoPiercingTwo;
-            bCTwo.ammoReloadCount = originalReloadAmountOne;
             modifiedReceiverTwo.dmg(originalDamageTwo);
             modifiedReceiverTwo.delay(originalDelayTwo);
             modifiedReceiverTwo.rounds(originalProjectileAmountTwo);
+            modifiedReceiverTwo.mag(originalMagazineTwo);
         }
 
-        originalStack = 0;
-        ammoDebt = 0;
+        installedMagazineOne = false;
+        installedMagazineTwo = false;
         modifiedGun = ItemStack.EMPTY;
         modifiedReceiverOne = null;
         modifiedReceiverTwo = null;
@@ -365,17 +302,15 @@ public class PlayerStats {
 
     public void setOriginalValues(BulletConfig bCIn, Receiver rIn, ItemStack heldStack, boolean isOneOrTwo) {
         if (isOneOrTwo) {
-            originalAmountAfterReload = rIn.getMagazine(heldStack).getAmountAfterReload(heldStack);
-            originalAmountBeforeReload = rIn.getMagazine(heldStack).getAmountBeforeReload(heldStack);
+            originalMagazineOne = rIn.getMagazine(heldStack);
             originalAmmoPiercingOne = bCIn.armorPiercingPercent;
-            originalReloadAmountOne = bCIn.ammoReloadCount;
             originalDamageOne = rIn.getBaseDamage(heldStack);
             originalDelayOne = rIn.getDelayAfterFire(heldStack);
             originalProjectileAmountOne = rIn.getRoundsPerCycle(heldStack);
         }
         if (!isOneOrTwo) {
+            originalMagazineTwo = rIn.getMagazine(heldStack);
             originalAmmoPiercingTwo = bCIn.armorPiercingPercent;
-            originalReloadAmountTwo = bCIn.ammoReloadCount;
             originalDamageTwo = rIn.getBaseDamage(heldStack);
             originalDelayTwo = rIn.getDelayAfterFire(heldStack);
             originalProjectileAmountTwo = rIn.getRoundsPerCycle(heldStack);
