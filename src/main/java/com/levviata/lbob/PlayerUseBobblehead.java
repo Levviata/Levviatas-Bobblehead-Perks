@@ -57,64 +57,64 @@ public class PlayerUseBobblehead {
                 case 1: {
                     if (strengthScore.getScorePoints() >= funLimit) {
                         Minecraft.getMinecraft().ingameGUI.setOverlayMessage(new TextComponentString(LIMIT_MESSAGE), false);
-                    } else {
-                        usedStrengthBob = true;
+                    } else if (strengthScore.getScorePoints() < funLimit) {
                         stack.setCount(stack.getCount() - 1);
                     }
+                    usedStrengthBob = true;
                     break;
                 }
                 case 2: {
                     if (perceptionScore.getScorePoints() >= funLimit) {
                         Minecraft.getMinecraft().ingameGUI.setOverlayMessage(new TextComponentString(LIMIT_MESSAGE), false);
-                    } else {
-                        usedPerceptionBob = true;
+                    } else if (perceptionScore.getScorePoints() < funLimit) {
                         stack.setCount(stack.getCount() - 1);
                     }
+                    usedPerceptionBob = true;
                     break;
                 }
                 case 3: {
                     if (enduranceScore.getScorePoints() >= funLimit) {
                         Minecraft.getMinecraft().ingameGUI.setOverlayMessage(new TextComponentString(LIMIT_MESSAGE), false);
-                    } else {
-                        usedEnduranceBob = true;
+                    } else if (enduranceScore.getScorePoints() < funLimit) {
                         stack.setCount(stack.getCount() - 1);
                     }
+                    usedEnduranceBob = true;
                     break;
                 }
                 case 4: {
                     if (charismaScore.getScorePoints() >= funLimit) {
                         Minecraft.getMinecraft().ingameGUI.setOverlayMessage(new TextComponentString(LIMIT_MESSAGE), false);
-                    } else {
-                        usedCharismaBob = true;
+                    } else if (charismaScore.getScorePoints() < funLimit) {
                         stack.setCount(stack.getCount() - 1);
                     }
+                    usedCharismaBob = true;
                     break;
                 }
                 case 5: {
                     if (intelligenceScore.getScorePoints() >= funLimit) {
                         Minecraft.getMinecraft().ingameGUI.setOverlayMessage(new TextComponentString(LIMIT_MESSAGE), false);
-                    } else {
-                        usedIntelligenceBob = true;
+                    } else if (intelligenceScore.getScorePoints() < funLimit) {
                         stack.setCount(stack.getCount() - 1);
                     }
+                    usedIntelligenceBob = true;
                     break;
                 }
                 case 6: {
                     if (agilityScore.getScorePoints() >= funLimit) {
                         Minecraft.getMinecraft().ingameGUI.setOverlayMessage(new TextComponentString(LIMIT_MESSAGE), false);
-                    } else {
-                        usedAgilityBob = true;
+                    }  else if (agilityScore.getScorePoints() < funLimit) {
                         stack.setCount(stack.getCount() - 1);
                     }
+                    usedAgilityBob = true;
                     break;
                 }
-                case 8: {
+                case 7: {
                     if (luckScore.getScorePoints() >= funLimit) {
                         Minecraft.getMinecraft().ingameGUI.setOverlayMessage(new TextComponentString(LIMIT_MESSAGE), false);
-                    } else {
-                        usedLuckBob = true;
+                    } else if (luckScore.getScorePoints() < funLimit) {
                         stack.setCount(stack.getCount() - 1);
                     }
+                    usedLuckBob = true;
                     break;
                 }
             }
@@ -124,21 +124,21 @@ public class PlayerUseBobblehead {
         // comes with stat increases then has perks at X amount consumed, usually 5 or 10
         // total fallout bobbleheads is 7
         if (usedStrengthBob) {
-            if (strengthScore.getScorePoints() < funLimit) {
-                strengthScore.setScorePoints(strengthScore.getScorePoints() + 1);
-            } else {
+            if (strengthScore.getScorePoints() >= funLimit) {
                 strengthScore.setScorePoints(funLimit);
+            } else {
+                strengthScore.setScorePoints(strengthScore.getScorePoints() + 1);
             }
 
             usedStrengthBob = false;
         }
 
         if (usedPerceptionBob) {
-           /* pDataIn.setInteger(GUN_ACCURACY_TAG, pDataIn.getInteger(GUN_ACCURACY_TAG) + 1); // reduces spread
-
-            if (pDataIn.getInteger(GUN_ACCURACY_TAG) >= 5) { // perk
-                pDataIn.setBoolean(NIGHT_VISION_TAG, true);
-            }*/
+            if (perceptionScore.getScorePoints() >= funLimit) {
+                perceptionScore.setScorePoints(funLimit);
+            } else {
+                perceptionScore.setScorePoints(perceptionScore.getScorePoints() + 1);
+            }
 
             usedPerceptionBob = false;
         }
@@ -146,17 +146,18 @@ public class PlayerUseBobblehead {
         if (usedEnduranceBob) {
 
             if (enduranceScore.getScorePoints() >= 20 && enduranceBonusScore.getScorePoints() != 1) { // perk, 5 bobs
-                if (enduranceScore.getScorePoints() < funLimit) {
+
+                if (enduranceScore.getScorePoints() >= funLimit) {
+                    enduranceScore.setScorePoints(funLimit);
+                } else {
                     enduranceScore.setScorePoints(enduranceScore.getScorePoints() + 10);
                     enduranceBonusScore.setScorePoints(1);
-                } else {
-                    enduranceScore.setScorePoints(funLimit);
                 }
             } else {
-                if (enduranceScore.getScorePoints() < funLimit) {
-                    enduranceScore.setScorePoints(enduranceScore.getScorePoints() + 4);
-                } else {
+                if (enduranceScore.getScorePoints() >= funLimit) {
                     enduranceScore.setScorePoints(funLimit);
+                } else {
+                    enduranceScore.setScorePoints(enduranceScore.getScorePoints() + 4);
                 }
             }
 
@@ -165,21 +166,20 @@ public class PlayerUseBobblehead {
 
         if (usedCharismaBob) { // plot armor
             // todo perk
-            if (charismaScore.getScorePoints() < funLimit) {
-                charismaScore.setScorePoints(charismaScore.getScorePoints() + 1);
-            } else {
+            if (charismaScore.getScorePoints() >= funLimit) {
                 charismaScore.setScorePoints(funLimit);
+            } else {
+                charismaScore.setScorePoints(charismaScore.getScorePoints() + 1);
             }
 
             usedCharismaBob = false;
         }
 
         if (usedIntelligenceBob) { // increases gun damage
-            // limits
-            if (intelligenceScore.getScorePoints() < funLimit) {
-                intelligenceScore.setScorePoints(intelligenceScore.getScorePoints() + 1);
-            } else {
+            if (intelligenceScore.getScorePoints() >= funLimit) {
                 intelligenceScore.setScorePoints(funLimit);
+            } else {
+                intelligenceScore.setScorePoints(intelligenceScore.getScorePoints() + 1);
             }
 
             usedIntelligenceBob = false;
@@ -188,13 +188,23 @@ public class PlayerUseBobblehead {
 
         if (usedAgilityBob) { // percentage
             // todo keybind for tweaking current move speed after acquiring 5 agility bob
+            if (agilityScore.getScorePoints() >= funLimit) {
+                agilityScore.setScorePoints(funLimit);
+            } else {
+                agilityScore.setScorePoints(agilityScore.getScorePoints() + 1);
+            }
 
             usedAgilityBob = false;
         }
 
         if (usedLuckBob) { // increases the chance of reloading rounds for free,
+            if (luckScore.getScorePoints() >= funLimit) {
+                luckScore.setScorePoints(funLimit);
+            } else {
+                luckScore.setScorePoints(luckScore.getScorePoints() + 1);
+            }
 
-            usedAgilityBob = false;
+            usedLuckBob = false;
         }
     }
 }
