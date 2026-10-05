@@ -157,7 +157,8 @@ public class PlayerStats {
             movementSpeed.removeModifier(MOVEMENT_SPEED_UUID);
 
             // operationIn: multiplicative
-            movementSpeed.applyModifier(new AttributeModifier(MOVEMENT_SPEED_UUID, nameIn, agilityScore.getScorePoints(), 1));
+            // 7.5% increase per point up to 75%
+            movementSpeed.applyModifier(new AttributeModifier(MOVEMENT_SPEED_UUID, nameIn, agilityScore.getScorePoints() * 0.075D, 1));
         }
 
         // perception, intelligence, and luck
