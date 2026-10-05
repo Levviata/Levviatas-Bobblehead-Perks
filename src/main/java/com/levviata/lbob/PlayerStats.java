@@ -3,7 +3,6 @@ package com.levviata.lbob;
 import com.hbm.inventory.RecipesCommon;
 import com.hbm.items.ModItems;
 import com.hbm.items.weapon.sedna.*;
-import com.hbm.items.weapon.sedna.mags.IMagazine;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.IAttributeInstance;
@@ -11,9 +10,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.scoreboard.IScoreCriteria;
 import net.minecraft.scoreboard.Score;
-import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
@@ -59,6 +56,13 @@ public class PlayerStats {
     private int originalProjectileAmountTwo;
     private float originalAmmoPiercingOne;
     private float originalAmmoPiercingTwo;
+    private int originalReloadAmountOne;
+    private int originalReloadAmountTwo;
+    private int ammoDebt = -1;
+    private int originalAmountAfterReload;
+    private int originalAmountBeforeReload;
+    private int ammoRefilled;
+    private boolean hasRefunded;
     private boolean modified;
 
     private ItemStack loggedSednaGun = ItemStack.EMPTY;
@@ -145,12 +149,7 @@ public class PlayerStats {
             armorToughness.applyModifier(new AttributeModifier(ARMOR_TOUGHNESS_UUID, nameIn, charismaScore.getScorePoints() * 0.5D, 0));
         }
 
-        // intelligence
-        // idea,
-        // perk 5 1 more projectile per 5 shots and 10% damage pen
-        // perk 10 1 more projectile every shot with a 15% physical
-        // single fire same
-
+        // intelligence and luck
 
         if (heldStack.getItem() instanceof ItemGunBaseSedna) {
             // to my knowledge, no guns inherit this class
@@ -163,30 +162,22 @@ public class PlayerStats {
 
         if (heldStack.getItem() instanceof ItemGunBaseNT) {
             if (!modified || !ItemStack.areItemStacksEqual(modifiedGun, heldStack)) {
+                // clean for this cycle
                 if (modified) {
-                    modifiedReceiverOne.dmg(originalDamageOne);
-
-                    if (modifiedReceiverTwo != null) {
-                        modifiedReceiverTwo.dmg(originalDamageTwo);
-                    }
-
-                    modified = false;
+                    cleanGun(heldStack, player);
                 }
 
                 ItemGunBaseNT gun = (ItemGunBaseNT) heldStack.getItem();
                 GunConfig config = gun.getConfig(heldStack, 0);
                 Receiver[] receivers = config.getReceivers(heldStack);
 
+                // 1
                 modifiedReceiverOne = receivers[0];
 
                 BulletConfig bCOne = (BulletConfig) modifiedReceiverOne.getMagazine(heldStack).getType(heldStack, player.inventory);
 
-                originalAmmoPiercingOne = bCOne.armorPiercingPercent;
-                originalDamageOne = modifiedReceiverOne.getBaseDamage(heldStack);
-                originalDelayOne = modifiedReceiverOne.getDelayAfterFire(heldStack);
-                originalProjectileAmountOne = modifiedReceiverOne.getRoundsPerCycle(heldStack);
+                setOriginalValues(bCOne, modifiedReceiverOne, heldStack, true);
 
-                // 1
                 processReceiver(modifiedReceiverOne, originalDamageOne, originalDelayOne, originalAmmoPiercingOne, intelligenceScore, heldStack, player);
 
                 // 2
@@ -196,10 +187,7 @@ public class PlayerStats {
 
                     BulletConfig bCTwo = (BulletConfig) modifiedReceiverTwo.getMagazine(heldStack).getType(heldStack, player.inventory);
 
-                    originalAmmoPiercingTwo = bCTwo.armorPiercingPercent;
-                    originalDamageTwo = modifiedReceiverTwo.getBaseDamage(heldStack);
-                    originalDelayTwo = modifiedReceiverTwo.getDelayAfterFire(heldStack);
-                    originalProjectileAmountTwo = modifiedReceiverTwo.getRoundsPerCycle(heldStack);
+                    setOriginalValues(bCTwo, modifiedReceiverTwo, heldStack, false);
 
                     processReceiver(modifiedReceiverTwo, originalDamageTwo, originalDelayTwo, originalAmmoPiercingTwo, intelligenceScore, heldStack, player);
                 }
@@ -208,27 +196,8 @@ public class PlayerStats {
                 modified = true;
             }
         } else if (modified) {
-            BulletConfig bCOne = (BulletConfig) modifiedReceiverOne.getMagazine(heldStack).getType(heldStack, player.inventory);
-
-            bCOne.armorPiercingPercent = originalAmmoPiercingOne;
-            modifiedReceiverOne.dmg(originalDamageOne);
-            modifiedReceiverOne.delay(originalDelayOne);
-            modifiedReceiverOne.rounds(originalProjectileAmountOne);
-
-
-            if (modifiedReceiverTwo != null) {
-                BulletConfig bCTwo = (BulletConfig) modifiedReceiverTwo.getMagazine(heldStack).getType(heldStack, player.inventory);
-
-                bCTwo.armorPiercingPercent = originalAmmoPiercingTwo;
-                modifiedReceiverTwo.dmg(originalDamageTwo);
-                modifiedReceiverTwo.delay(originalDelayTwo);
-                modifiedReceiverTwo.rounds(originalProjectileAmountTwo);
-            }
-
-            modifiedGun = ItemStack.EMPTY;
-            modifiedReceiverOne = null;
-            modifiedReceiverTwo = null;
-            modified = false;
+            //clean for next cycle
+            cleanGun(heldStack, player);
         }
     }
 
@@ -238,7 +207,6 @@ public class PlayerStats {
         BulletConfig bC = (BulletConfig) recIn.getMagazine(heldStackIn).getType(heldStackIn, player.inventory);
 
         int modifiedDelay = ogDelay - (intelligenceScoreIn.getScorePoints() / 10);
-
 
         if (modifiedDelay > 0) {
             int formula = ogDelay - (intelligenceScoreIn.getScorePoints() / 100);
@@ -255,6 +223,10 @@ public class PlayerStats {
             modifiedDelay = 0;
         }
         recIn.delay(modifiedDelay);
+
+        /*if (Math.random() < Math.min(luckScore.getScorePoints() * 0.05, 0.5)) {
+
+        }*/
 
         if (intelligenceScoreIn.getScorePoints() >= 5) { // lesser perk
             if (!heldStackIn.isEmpty()) {
@@ -275,6 +247,115 @@ public class PlayerStats {
                     bC.setHeadshot(2);
                 }
             }
+        }
+
+        ItemStack ammo = bC.ammo.getStack();
+        boolean refundAmmo = !hasRefunded; //&& Math.random() < Math.min(luckScore.getScorePoints() * 0.05, 0.5); // for every luck point, add 5% chance to refundAmmo, up to 50%
+
+        ItemStack newAmmo = ammo.copy();
+        int originalAmmoDebt = originalAmountAfterReload - originalAmountBeforeReload;
+        // i am this ammo in debt
+        ammoDebt = Math.abs(recIn.getMagazine(heldStackIn).getAmountBeforeReload(heldStackIn) - recIn.getMagazine(heldStackIn).getAmountAfterReload(heldStackIn));
+
+        // im always in debt,
+        // my debt should be satiated and only once, until my debt changes,
+        // if it changes it has not been satiated
+        if (ammoDebt > 0) { // if i have debt
+            if (ammoDebt != originalAmmoDebt && refundAmmo) {
+                newAmmo.setCount(ammoDebt);
+                player.inventory.addItemStackToInventory(newAmmo);
+
+                ammoDebt = 0; // i have solved the debt
+                hasRefunded = true;
+                LOGGER.info("refunded");
+                LOGGER.info("originalAmmoDebt {} and ammoDebt {}", originalAmmoDebt, ammoDebt);
+            } else {
+                hasRefunded = false;
+                LOGGER.info("not refunded");
+                LOGGER.info("originalAmmoDebt {} and ammoDebt {}", originalAmmoDebt, ammoDebt);
+            }
+        } else { // its has been solved
+            hasRefunded = true;
+        }
+/*
+        if (ammoUsed == 0) {
+            ammoRefunded = false;
+            LOGGER.info("cleaning variables");
+        }*/
+
+        /*//LOGGER.info(refundAmmo);
+        if (ammoUsed != 0)
+            LOGGER.info("ammoUsed: {}",ammoUsed);
+        //LOGGER.info("ammoRefilled: {}",ammoRefilled);
+        LOGGER.info("ammoRefunded: {}",ammoRefunded);*/
+
+
+        /*LOGGER.info(c);
+        LOGGER.info(b);
+        LOGGER.info(a);*/
+        int c = ammo.getCount(); // og ammo
+
+       /* if (ammoDebt > 0 && refundAmmo) { // if i have debt and i should refund ammo
+
+            hasRefunded = true;
+
+            LOGGER.info("i added the ammo back");
+        } else if (newAmmo.getCount() == c && ammoDebt == 0) {
+            hasRefunded = false;
+            LOGGER.info("not adding");
+        }*/
+/*
+        int b = ; // ammo without bullets refunded
+        boolean a = b == c;
+        if (a) {
+            hasRefunded = false;
+            LOGGER.info("miracle");
+        }*/
+    }
+    public void cleanGun(ItemStack heldStack, EntityPlayer player) {
+        // 1
+        BulletConfig bCOne = (BulletConfig) modifiedReceiverOne.getMagazine(heldStack).getType(heldStack, player.inventory);
+
+        bCOne.armorPiercingPercent = originalAmmoPiercingOne;
+        bCOne.ammoReloadCount = originalReloadAmountOne;
+        modifiedReceiverOne.dmg(originalDamageOne);
+        modifiedReceiverOne.delay(originalDelayOne);
+        modifiedReceiverOne.rounds(originalProjectileAmountOne);
+
+        // 2
+        if (modifiedReceiverTwo != null) {
+            BulletConfig bCTwo = (BulletConfig) modifiedReceiverTwo.getMagazine(heldStack).getType(heldStack, player.inventory);
+
+            bCTwo.armorPiercingPercent = originalAmmoPiercingTwo;
+            bCTwo.ammoReloadCount = originalReloadAmountOne;
+            modifiedReceiverTwo.dmg(originalDamageTwo);
+            modifiedReceiverTwo.delay(originalDelayTwo);
+            modifiedReceiverTwo.rounds(originalProjectileAmountTwo);
+        }
+
+        ammoDebt = 0;
+        modifiedGun = ItemStack.EMPTY;
+        modifiedReceiverOne = null;
+        modifiedReceiverTwo = null;
+        modified = false;
+    }
+
+    public void setOriginalValues(BulletConfig bCIn, Receiver rIn, ItemStack heldStack, boolean isOneOrTwo) {
+        if (isOneOrTwo) {
+            originalAmountAfterReload = rIn.getMagazine(heldStack).getAmountAfterReload(heldStack);
+            originalAmountBeforeReload = rIn.getMagazine(heldStack).getAmountBeforeReload(heldStack);
+            originalAmmoPiercingOne = bCIn.armorPiercingPercent;
+            originalReloadAmountOne = bCIn.ammoReloadCount;
+            originalDamageOne = rIn.getBaseDamage(heldStack);
+            originalDelayOne = rIn.getDelayAfterFire(heldStack);
+            originalProjectileAmountOne = rIn.getRoundsPerCycle(heldStack);
+        }
+        if (!isOneOrTwo) {
+            originalAmmoPiercingTwo = bCIn.armorPiercingPercent;
+            originalReloadAmountTwo = bCIn.ammoReloadCount;
+            originalDamageTwo = rIn.getBaseDamage(heldStack);
+            originalDelayTwo = rIn.getDelayAfterFire(heldStack);
+            originalProjectileAmountTwo = rIn.getRoundsPerCycle(heldStack);
         }
     }
 }
