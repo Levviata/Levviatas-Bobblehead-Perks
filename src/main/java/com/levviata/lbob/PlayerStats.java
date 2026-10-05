@@ -61,6 +61,7 @@ public class PlayerStats {
     private int ammoDebt = -1;
     private int originalAmountAfterReload;
     private int originalAmountBeforeReload;
+    private int lastAmmoDebt;
     private int ammoRefilled;
     private boolean hasRefunded;
     private boolean modified;
@@ -165,6 +166,7 @@ public class PlayerStats {
                 // clean for this cycle
                 if (modified) {
                     cleanGun(heldStack, player);
+                    lastAmmoDebt = originalAmountAfterReload - originalAmountBeforeReload;
                 }
 
                 ItemGunBaseNT gun = (ItemGunBaseNT) heldStack.getItem();
@@ -198,6 +200,7 @@ public class PlayerStats {
         } else if (modified) {
             //clean for next cycle
             cleanGun(heldStack, player);
+            lastAmmoDebt = originalAmountAfterReload - originalAmountBeforeReload;
         }
     }
 
@@ -253,7 +256,6 @@ public class PlayerStats {
         boolean refundAmmo = !hasRefunded; //&& Math.random() < Math.min(luckScore.getScorePoints() * 0.05, 0.5); // for every luck point, add 5% chance to refundAmmo, up to 50%
 
         ItemStack newAmmo = ammo.copy();
-        int originalAmmoDebt = originalAmountAfterReload - originalAmountBeforeReload;
         // i am this ammo in debt
         ammoDebt = Math.abs(recIn.getMagazine(heldStackIn).getAmountBeforeReload(heldStackIn) - recIn.getMagazine(heldStackIn).getAmountAfterReload(heldStackIn));
 
@@ -261,18 +263,18 @@ public class PlayerStats {
         // my debt should be satiated and only once, until my debt changes,
         // if it changes it has not been satiated
         if (ammoDebt > 0) { // if i have debt
-            if (ammoDebt != originalAmmoDebt && refundAmmo) {
+            if (ammoDebt != lastAmmoDebt && refundAmmo) {
                 newAmmo.setCount(ammoDebt);
                 player.inventory.addItemStackToInventory(newAmmo);
 
                 ammoDebt = 0; // i have solved the debt
                 hasRefunded = true;
                 LOGGER.info("refunded");
-                LOGGER.info("originalAmmoDebt {} and ammoDebt {}", originalAmmoDebt, ammoDebt);
+                LOGGER.info("originalAmmoDebt {} and ammoDebt {}", lastAmmoDebt, ammoDebt);
             } else {
                 hasRefunded = false;
-                LOGGER.info("not refunded");
-                LOGGER.info("originalAmmoDebt {} and ammoDebt {}", originalAmmoDebt, ammoDebt);
+                /*LOGGER.info("not refunded");
+                LOGGER.info("originalAmmoDebt {} and ammoDebt {}", lastAmmoDebt, ammoDebt);*/
             }
         } else { // its has been solved
             hasRefunded = true;
