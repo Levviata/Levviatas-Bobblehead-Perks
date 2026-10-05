@@ -48,6 +48,7 @@ public class PlayerStats {
 
     private int previousHealth = -1;
     private int previousCharisma = -1;
+    private int previousAgility = -1;
 
     private ItemStack modifiedGun = ItemStack.EMPTY;
     private Receiver modifiedReceiverOne;
@@ -126,9 +127,6 @@ public class PlayerStats {
             strength.applyModifier(new AttributeModifier(ATTACK_DAMAGE_MODIFIER, nameIn, newDamage, 0));
         }
 
-        // perception
-        // todo gun accuracy stat logic
-
         // endurance
         IAttributeInstance maxHealth = player.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH);
         if (enduranceScore.getScorePoints() != previousHealth || player.getMaxHealth() != previousHealth) {
@@ -150,7 +148,19 @@ public class PlayerStats {
             armorToughness.applyModifier(new AttributeModifier(ARMOR_TOUGHNESS_UUID, nameIn, charismaScore.getScorePoints() * 0.5D, 0));
         }
 
-        // intelligence and luck
+        // agility
+        // todo 0.5 increases for flight speed, also needs attribute modifier fly speed fix
+        IAttributeInstance movementSpeed = player.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED);
+        if (agilityScore.getScorePoints() != previousAgility) {
+            previousAgility = agilityScore.getScorePoints();
+
+            movementSpeed.removeModifier(MOVEMENT_SPEED_UUID);
+
+            // operationIn: multiplicative
+            movementSpeed.applyModifier(new AttributeModifier(MOVEMENT_SPEED_UUID, nameIn, agilityScore.getScorePoints(), 1));
+        }
+
+        // perception, intelligence, and luck
 
         if (heldStack.getItem() instanceof ItemGunBaseSedna) {
             // to my knowledge, no guns inherit this class
@@ -209,7 +219,7 @@ public class PlayerStats {
                             installedMagazineTwo = true;
                         }
                     }
-                    
+
                     processReceiver(modifiedReceiverTwo, originalDamageTwo, originalDelayTwo, originalAmmoPiercingTwo, intelligenceScore, heldStack, player);
                 }
 
@@ -271,6 +281,7 @@ public class PlayerStats {
             }
         }
     }
+
     public void cleanGun(ItemStack heldStack, EntityPlayer player) {
         // 1
         BulletConfig bCOne = (BulletConfig) modifiedReceiverOne.getMagazine(heldStack).getType(heldStack, player.inventory);
