@@ -24,7 +24,7 @@ public class CommandSetSpeed extends CommandBase {
 
     @Override
     public String getUsage(ICommandSender sender) {
-        return "/setspeed <speed>";
+        return "/setspeed <speed>. Proportional to your Agility stat. -1 to reset";
     }
 
     @Override
@@ -48,7 +48,7 @@ public class CommandSetSpeed extends CommandBase {
         // No argument
         if (args.length != 1) {
             player.sendMessage(new TextComponentString(
-                    TextFormatting.YELLOW + "Usage: /setspeed <speed>"
+                    TextFormatting.YELLOW + "Usage: /setspeed <speed>. -1 to reset"
             ));
 
             player.sendMessage(new TextComponentString(
@@ -68,7 +68,7 @@ public class CommandSetSpeed extends CommandBase {
             requestedSpeed = Integer.parseInt(args[0]);
         } catch (NumberFormatException e) {
             player.sendMessage(new TextComponentString(
-                    TextFormatting.RED + "Speed must be a whole number."
+                    TextFormatting.RED + "Speed must be a whole number. -1 to reset."
             ));
 
             player.sendMessage(new TextComponentString(
@@ -83,6 +83,10 @@ public class CommandSetSpeed extends CommandBase {
 
         // Clamp the requested value between 0 and the player's agility
         int actualSpeed = Math.max(0, Math.min(requestedSpeed, maxSpeed));
+
+        if (requestedSpeed == -1) {
+            actualSpeed = -1;
+        }
 
         // Store this player's speed
         playerSpeeds.put(player.getUniqueID(), actualSpeed);
@@ -109,6 +113,6 @@ public class CommandSetSpeed extends CommandBase {
 
     // Helper method for getting a player's speed
     public static int getPlayerSpeed(EntityPlayer player) {
-        return playerSpeeds.getOrDefault(player.getUniqueID(), 0);
+        return playerSpeeds.getOrDefault(player.getUniqueID(), -1);
     }
 }
