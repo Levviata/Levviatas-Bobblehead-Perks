@@ -59,7 +59,7 @@ public class RefundMagazine implements IMagazine<BulletConfig> {
     }
 
     @Override
-    public void reloadAction(ItemStack stack, IInventory inventory) {
+    public void reloadAction(ItemStack stack, IInventory inventory) { // bug: when reloading with less than a full mags worth of bullet, the gun tries to reload twice doubling ammo and stopping the reloading for a sec
 
         // Capture this BEFORE NTM performs its reload.
         int before = original.getAmount(stack, inventory);
@@ -89,6 +89,7 @@ public class RefundMagazine implements IMagazine<BulletConfig> {
             return;
         }
 
+        int ogAmount = config.ammo.getStack().getCount();
         ItemStack refund = config.ammo.getStack().copy();
         refund.setCount(ammoDebt);
 
@@ -96,6 +97,12 @@ public class RefundMagazine implements IMagazine<BulletConfig> {
             EntityPlayer player = ((InventoryPlayer) inventory).player;
             player.inventory.addItemStackToInventory(refund);
         }
+/*      no work, wontfix for now
+        if (getAmount(stack, inventory) < getCapacity(stack) && config.ammo.getStack().getCount() < getCapacity(stack)) {
+            config.ammo.getStack().setCount(getCapacity(stack));
+        }
+
+        config.ammo.getStack().setCount(ogAmount);*/
     }
     @Override
     public ItemStack getIconForHUD(ItemStack stack, EntityPlayer player) {
