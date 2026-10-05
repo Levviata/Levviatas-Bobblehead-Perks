@@ -9,8 +9,5 @@ import net.minecraftforge.fml.relauncher.Side;
 
 @Mod.EventBusSubscriber(modid = Tags.MOD_ID, value = Side.SERVER)
 public class ServerProxy extends CommonProxy { // server only
-    @Override
-    public void serverStarting(FMLServerStartingEvent event) {
-        event.registerServerCommand(new CommandSetSpeed());
-    }
+
 }

@@ -1,6 +1,7 @@
 package com.levviata.lbob.proxy;
 
 import com.levviata.lbob.BobbleheadUse;
+import com.levviata.lbob.CommandSetSpeed;
 import com.levviata.lbob.StatsLogic;
 import com.levviata.lbob.Tags;
 import net.minecraft.scoreboard.IScoreCriteria;
@@ -64,6 +65,6 @@ public class CommonProxy { // server and client
     }
 
     public void serverStarting(FMLServerStartingEvent event) {
-
+        event.registerServerCommand(new CommandSetSpeed());
     }
 }
