@@ -4,13 +4,11 @@ import com.hbm.inventory.RecipesCommon;
 import com.hbm.items.ModItems;
 import com.hbm.items.weapon.sedna.*;
 import com.hbm.items.weapon.sedna.mags.IMagazine;
-import com.hbm.particle.SpentCasing;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.IAttributeInstance;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.EntityEquipmentSlot;
-import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.scoreboard.Score;
@@ -19,10 +17,10 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.*;
 
-import static com.levviata.lbob.LeviathanPlayerAttributes.*;
-import static com.levviata.lbob.LeviathanPlayerAttributes.LOGGER;
+import static com.levviata.lbob.LSPECIALMod.LOGGER;
+import static com.levviata.lbob.proxy.ClientProxy.*;
 
-public class PlayerStats {
+public class StatsLogic {
     // todo add uuid getter helper from attribute modifier
     //vanilla uuids
     private static final UUID ATTACK_DAMAGE_MODIFIER = UUID.fromString("CB3F55D3-645C-4F38-A497-9C13A33DB5CF");

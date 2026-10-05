@@ -4,22 +4,19 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.scoreboard.IScoreCriteria;
-import net.minecraft.scoreboard.Score;
-import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.relauncher.Side;
 
 import java.util.Objects;
 
-import static com.levviata.lbob.LeviathanPlayerAttributes.*;
+import static com.levviata.lbob.LSPECIALMod.*;
+import static com.levviata.lbob.proxy.ClientProxy.*;
 
-// this class provides flags that are used in LNBTMagic
-@Mod.EventBusSubscriber(modid = Tags.MOD_ID)
-public class PlayerUseBobblehead {
+@Mod.EventBusSubscriber(modid = Tags.MOD_ID, value = Side.CLIENT)
+public class BobbleheadUse {
     public static boolean usedStrengthBob = false;
     public static boolean usedPerceptionBob = false;
     public static boolean usedEnduranceBob = false;

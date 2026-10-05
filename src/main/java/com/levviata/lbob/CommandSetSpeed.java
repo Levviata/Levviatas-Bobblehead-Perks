@@ -10,7 +10,7 @@ import net.minecraft.util.text.TextFormatting;
 
 import java.util.*;
 
-import static com.levviata.lbob.LeviathanPlayerAttributes.agilityScore;
+import static com.levviata.lbob.proxy.ClientProxy.*;
 
 public class CommandSetSpeed extends CommandBase {
 

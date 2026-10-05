@@ -8,7 +8,7 @@ import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 
-import static com.levviata.lbob.LeviathanPlayerAttributes.luckScore;
+import static com.levviata.lbob.proxy.ClientProxy.luckScore;
 
 public class RefundMagazine implements IMagazine<BulletConfig> {
 
