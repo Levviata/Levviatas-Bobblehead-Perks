@@ -15,6 +15,8 @@ import org.apache.logging.log4j.Logger;
 @Mod(modid = Tags.MOD_ID, name = Tags.MOD_NAME, version = Tags.VERSION)
 public class LeviathanPlayerAttributes {
 
+    // todo: 1. bobbleheads above meta 7 augment limit. 2. recipes for them to reduce grinding
+
     public static final Logger LOGGER = LogManager.getLogger(Tags.MOD_NAME);
 
     public static Scoreboard scoreboard;
@@ -38,11 +40,11 @@ public class LeviathanPlayerAttributes {
     public static final String STRENGTH_BOARD = "Strength";
     public static final String PERCEPTION_BOARD = "Perception";
     public static final String ENDURANCE_BOARD = "Endurance";
-    public static final String ENDURANCE_BONUS_BOARD = "Endurance Bonus";
+    public static final String ENDURANCE_BONUS_BOARD = "Endurance_Bonus";
     public static final String INTELLIGENCE_BOARD = "Intelligence";
     public static final String CHARISMA_BOARD = "Charisma";
-    public static final String AGILITY_BOARD = "Intelligence";
-    public static final String LUCK_BOARD = "Intelligence";
+    public static final String AGILITY_BOARD = "Agility";
+    public static final String LUCK_BOARD = "Luck";
 
     public static final String LIMIT_MESSAGE = "I have reached my limit, I can't consume more.";
 
@@ -101,7 +103,6 @@ public class LeviathanPlayerAttributes {
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         MinecraftForge.EVENT_BUS.register(new PlayerUseBobblehead());
-        MinecraftForge.EVENT_BUS.register(new LBAttributeModifier());
         MinecraftForge.EVENT_BUS.register(new PlayerStats());
     }
 
