@@ -17,10 +17,9 @@ import static com.levviata.lspecial.SPECIALScoreboard.inst;
 public class GuiSPECIAL extends GuiScreen {
 
     private static final Map<String, Score> scores = new LinkedHashMap<>();
-    public static boolean hasInit = false;
 
     public static void init() {
-        //scores.clear();
+        scores.clear();
         scores.put("Strength", inst.getStrengthScore());
         scores.put("Perception", inst.getPerceptionScore());
         scores.put("Endurance", inst.getEnduranceScore());
@@ -30,7 +29,6 @@ public class GuiSPECIAL extends GuiScreen {
         scores.put("Intelligence", inst.getIntelligenceScore());
         scores.put("Agility", inst.getAgilityScore());
         scores.put("Luck", inst.getLuckScore());
-        hasInit = true;
     }
     // todo maybe command to reset and rearrange stats, which this GUI would take to render a special interactable screen
 
@@ -74,7 +72,6 @@ public class GuiSPECIAL extends GuiScreen {
             if (mc.currentScreen instanceof GuiSPECIAL) {
                 mc.displayGuiScreen(null);
             } else {
-                scores.clear();
                 inst.scoreboard = mc.world.getScoreboard();
                 inst.startBoards();
                 inst.startScores(mc.player);

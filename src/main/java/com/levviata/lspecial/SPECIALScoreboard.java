@@ -1,14 +1,10 @@
 package com.levviata.lspecial;
 
-import com.levviata.lspecial.potion.PotionAmplifiedRegeneration;
-import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.potion.Potion;
 import net.minecraft.scoreboard.IScoreCriteria;
 import net.minecraft.scoreboard.Score;
 import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.scoreboard.Scoreboard;
-import org.lwjgl.input.Keyboard;
 
 public class SPECIALScoreboard {
     public static SPECIALScoreboard inst = new SPECIALScoreboard();
@@ -65,7 +61,7 @@ public class SPECIALScoreboard {
     private Score agilityScore;
     private Score luckScore;
 
-    public boolean startScores(EntityPlayer player) {
+    public void startScores(EntityPlayer player) {
         ScoreObjective objStrength = scoreboard.getObjective(STRENGTH_BOARD);
         ScoreObjective objPerception = scoreboard.getObjective(PERCEPTION_BOARD);
         ScoreObjective objEndurance = scoreboard.getObjective(ENDURANCE_BOARD);
@@ -85,7 +81,6 @@ public class SPECIALScoreboard {
         intelligenceScore = scoreboard.getOrCreateScore(player.getName(), objIntelligence);
         agilityScore = scoreboard.getOrCreateScore(player.getName(), objAgility);
         luckScore = scoreboard.getOrCreateScore(player.getName(), objLuck);
-        return true;
     }
 
     public Score getStrengthScore() {

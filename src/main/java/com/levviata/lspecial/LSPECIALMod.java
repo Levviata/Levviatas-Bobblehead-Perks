@@ -64,7 +64,7 @@ public class LSPECIALMod {
 
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent event) {
-
+        StatsLogic.init();
     }
 
     @Mod.EventHandler

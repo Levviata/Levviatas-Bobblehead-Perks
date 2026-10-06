@@ -13,8 +13,7 @@ import net.minecraftforge.fml.relauncher.Side;
 
 import java.util.Objects;
 
-import static com.levviata.lspecial.GuiSPECIAL.hasInit;
-import static com.levviata.lspecial.LSPECIALMod.*;
+
 import static com.levviata.lspecial.SPECIALScoreboard.inst;
 
 @Mod.EventBusSubscriber(modid = Tags.MOD_ID, value = Side.CLIENT)

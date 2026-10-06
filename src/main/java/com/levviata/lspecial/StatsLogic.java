@@ -18,7 +18,6 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.*;
 
-import static com.levviata.lspecial.GuiSPECIAL.hasInit;
 import static com.levviata.lspecial.SPECIALScoreboard.inst;
 import static com.levviata.lspecial.command.CommandSetFlySpeed.getPlayerFlySpeed;
 import static com.levviata.lspecial.command.CommandSetSpeed.getPlayerSpeed;
