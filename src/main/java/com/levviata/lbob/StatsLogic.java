@@ -72,6 +72,8 @@ public class StatsLogic {
     private IMagazine originalMagazineOne;
     private IMagazine originalMagazineTwo;
 
+    private int gunIndex = -1;
+
     private ItemStack loggedSednaGun = ItemStack.EMPTY;
 
     static List<Item> g = new ArrayList<>();
@@ -180,8 +182,7 @@ public class StatsLogic {
         // todo make perception increase found loot
 
         if (intelligenceScore.getScorePoints() >= 5) {
-            heldStack.getItem().setMaxDamage(-1);
-
+            heldStack.getItem().setMaxDamage(heldStack.getMetadata() - 1);
         }
 
         if (heldStack.getItem() instanceof ItemGunBaseSedna) {
@@ -202,7 +203,7 @@ public class StatsLogic {
 
                 ItemGunBaseNT gun = (ItemGunBaseNT) heldStack.getItem();
                 int configs = gun.getConfigCount();
-                for (int gunIndex = 0; gunIndex < configs; gunIndex++) {
+                for (gunIndex = 0; gunIndex < configs; gunIndex++) {
                     // modify guns using their unique gun config
                     // akimbo guns have two configs so this loop would trigger twice, modifying both
                     modifyGuns(heldStack, player, gun.getConfig(heldStack, gunIndex));
@@ -223,7 +224,7 @@ public class StatsLogic {
 
         // 1
         if (intelligenceScore.getScorePoints() >= 5) {
-            ItemGunBaseNT.setWear(heldStack, 0,  ItemGunBaseNT.getWear(heldStack, 0) - maxDura);
+            ItemGunBaseNT.setWear(heldStack, 0, 0);
         }
 
         modifiedReceiverOne = receivers[0];
@@ -307,6 +308,9 @@ public class StatsLogic {
                 if (rName.equals("hbm:gun_pepperbox")) {
                     recIn.rounds(6);
                 }
+                if (rName.equals("hbm:gun_lag")) {
+                    // todo make right click shift click run empty mag animation to then kill yourself
+                }
             }
         }
         if (intelligenceScore.getScorePoints() >= 10) { // higher perk
@@ -324,12 +328,14 @@ public class StatsLogic {
     }
 
     public void cleanGun(ItemStack heldStack, EntityPlayer player) {
-        ItemGunBaseNT gun = (ItemGunBaseNT) heldStack.getItem();
-
         // 1
         BulletConfig bCOne = (BulletConfig) modifiedReceiverOne.getMagazine(heldStack).getType(heldStack, player.inventory);
 
-        ItemGunBaseNT.setWear(heldStack, 1, originalDurabilityOne);
+        if (gunIndex != -1) {
+            for (int i = 0; i < gunIndex; i++) { // run through all gun configs
+                ItemGunBaseNT.setWear(heldStack, i, originalDurabilityOne);
+            }
+        }
         bCOne.armorPiercingPercent = originalAmmoPiercingOne;
         modifiedReceiverOne.dmg(originalDamageOne);
         modifiedReceiverOne.delay(originalDelayOne);
@@ -338,10 +344,6 @@ public class StatsLogic {
 
         // 2
         if (modifiedReceiverTwo != null) {
-            if (gun.getConfigCount() > 0) {
-                ItemGunBaseNT.setWear(heldStack, 1, originalDurabilityTwo);
-            }
-
             BulletConfig bCTwo = (BulletConfig) modifiedReceiverTwo.getMagazine(heldStack).getType(heldStack, player.inventory);
 
             bCTwo.armorPiercingPercent = originalAmmoPiercingTwo;
@@ -351,6 +353,7 @@ public class StatsLogic {
             modifiedReceiverTwo.mag(originalMagazineTwo);
         }
 
+        gunIndex = 0;
         installedMagazineOne = false;
         installedMagazineTwo = false;
         modifiedGun = ItemStack.EMPTY;
