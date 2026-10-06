@@ -2,16 +2,24 @@ package com.levviata.lspecial;
 
 import com.levviata.lspecial.command.CommandSetFlySpeed;
 import com.levviata.lspecial.command.CommandSetSpeed;
+import com.levviata.lspecial.network.RequestSPECIALStatsPacket;
+import com.levviata.lspecial.network.SyncSPECIALStatsPacket;
 import com.levviata.lspecial.potion.PotionAmplifiedRegeneration;
+import com.levviata.lspecial.proxy.CommonProxy;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.potion.Potion;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
+import net.minecraftforge.fml.common.network.NetworkRegistry;
+import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
+import net.minecraftforge.fml.relauncher.Side;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.input.Keyboard;
@@ -25,8 +33,10 @@ public class LSPECIALMod {
 
     public static final Logger LOGGER = LogManager.getLogger(Tags.MOD_NAME);
 
-   /* @SidedProxy(clientSide = "com.levviata.lspecial.proxy.ClientProxy", serverSide = "com.levviata.lspecial.proxy.ServerProxy")
-    private static CommonProxy proxy;*/
+    public static final SimpleNetworkWrapper NETWORK = NetworkRegistry.INSTANCE.newSimpleChannel(Tags.MOD_ID);
+
+    @SidedProxy(clientSide = "com.levviata.lspecial.proxy.ClientProxy", serverSide = "com.levviata.lspecial.proxy.ServerProxy")
+    private static CommonProxy proxy;
 
     /*@Mod.Instance
     private static LSPECIALMod inst;*/
@@ -59,12 +69,15 @@ public class LSPECIALMod {
 
         ForgeRegistries.POTIONS.register(AMPLIFIED_REGENERATION);
 
-        ClientRegistry.registerKeyBinding(toggleSpecial);
+        NETWORK.registerMessage(RequestSPECIALStatsPacket.Handler.class, RequestSPECIALStatsPacket.class, 0, Side.SERVER);
+
+        proxy.preInit(event);
     }
 
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent event) {
         StatsLogic.init();
+        proxy.postInit(event);
     }
 
     @Mod.EventHandler
@@ -72,7 +85,18 @@ public class LSPECIALMod {
         event.registerServerCommand(new CommandSetSpeed());
         event.registerServerCommand(new CommandSetFlySpeed());
     }
-
+    public static void syncStats(EntityPlayerMP player) {
+        NETWORK.sendTo(new SyncSPECIALStatsPacket(SPECIALScoreboard.inst.getStrengthScore().getScorePoints(),
+                SPECIALScoreboard.inst.getPerceptionScore().getScorePoints(),
+                SPECIALScoreboard.inst.getEnduranceScore().getScorePoints(),
+                SPECIALScoreboard.inst.getEnduranceBonusScore().getScorePoints(),
+                SPECIALScoreboard.inst.getCharismaScore().getScorePoints(),
+                SPECIALScoreboard.inst.getCharismaBonusScore().getScorePoints(),
+                SPECIALScoreboard.inst.getIntelligenceScore().getScorePoints(),
+                SPECIALScoreboard.inst.getAgilityScore().getScorePoints(),
+                SPECIALScoreboard.inst.getLuckScore().getScorePoints()),
+                player);
+    }
 /*
 
     public static String appendModID(String value) {

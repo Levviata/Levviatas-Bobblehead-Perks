@@ -2,6 +2,7 @@ package com.levviata.lspecial;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.scoreboard.Score;
@@ -16,7 +17,6 @@ import java.util.Objects;
 
 import static com.levviata.lspecial.SPECIALScoreboard.inst;
 
-@Mod.EventBusSubscriber(modid = Tags.MOD_ID, value = Side.CLIENT)
 public class BobbleheadUse {
     private static final String LIMIT_MESSAGE = "I have reached my limit, I can't consume more.";
 
@@ -26,7 +26,7 @@ public class BobbleheadUse {
     public void use(PlayerInteractEvent.RightClickItem event) {
         EntityPlayer player = event.getEntityPlayer();
 
-        if (player.world.isRemote) {
+        if (player.world.isRemote) { // server sided
             return;
         }
 
@@ -40,7 +40,6 @@ public class BobbleheadUse {
         // WARNING if the scores or scoreboards don't start, the mod is useless
         inst.startBoards();
         inst.startScores(player);
-        GuiSPECIAL.init();
 
         //LOGGER.error("Couldn't start the scoreboards, the mod is useless!"); how do i check this
 
@@ -66,6 +65,10 @@ public class BobbleheadUse {
             }
             if (stack.getItemDamage() == 7) {
                 processBob(inst.getLuckScore(), stack, player);
+            }
+
+            if (player instanceof EntityPlayerMP) {
+                LSPECIALMod.syncStats((EntityPlayerMP) player); // server -> client sync
             }
         }
     }

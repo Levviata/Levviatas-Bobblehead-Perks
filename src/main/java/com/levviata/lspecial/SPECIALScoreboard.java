@@ -60,6 +60,15 @@ public class SPECIALScoreboard {
     private Score charismaBonusScore;
     private Score agilityScore;
     private Score luckScore;
+    private int clientStrength;
+    private int clientPerception;
+    private int clientEndurance;
+    private int clientEnduranceBonus;
+    private int clientCharisma;
+    private int clientCharismaBonus;
+    private int clientIntelligence;
+    private int clientAgility;
+    private int clientLuck;
 
     public void startScores(EntityPlayer player) {
         ScoreObjective objStrength = scoreboard.getObjective(STRENGTH_BOARD);
@@ -81,6 +90,18 @@ public class SPECIALScoreboard {
         intelligenceScore = scoreboard.getOrCreateScore(player.getName(), objIntelligence);
         agilityScore = scoreboard.getOrCreateScore(player.getName(), objAgility);
         luckScore = scoreboard.getOrCreateScore(player.getName(), objLuck);
+    }
+
+    public void setClientScores(int strength, int perception, int endurance, int enduranceBonus, int charisma, int charismaBonus, int intelligence, int agility, int luck) {
+        clientStrength = strength;
+        clientPerception = perception;
+        clientEndurance = endurance;
+        clientEnduranceBonus = enduranceBonus;
+        clientCharisma = charisma;
+        clientCharismaBonus = charismaBonus;
+        clientIntelligence = intelligence;
+        clientAgility = agility;
+        clientLuck = luck;
     }
 
     public Score getStrengthScore() {
@@ -153,5 +174,41 @@ public class SPECIALScoreboard {
 
     public void setLuckScore(Score luckScore) {
         this.luckScore = luckScore;
+    }
+
+    public int getClientStrength() {
+        return clientStrength;
+    }
+
+    public int getClientPerception() {
+        return clientPerception;
+    }
+
+    public int getClientEndurance() {
+        return clientEndurance;
+    }
+
+    public int getClientEnduranceBonus() {
+        return clientEnduranceBonus;
+    }
+
+    public int getClientCharisma() {
+        return clientCharisma;
+    }
+
+    public int getClientCharismaBonus() {
+        return clientCharismaBonus;
+    }
+
+    public int getClientIntelligence() {
+        return clientIntelligence;
+    }
+
+    public int getClientAgility() {
+        return clientAgility;
+    }
+
+    public int getClientLuck() {
+        return clientLuck;
     }
 }

@@ -1,0 +1,29 @@
+package com.levviata.lspecial.proxy;
+
+import com.levviata.lspecial.LSPECIALMod;
+import com.levviata.lspecial.Tags;
+import com.levviata.lspecial.network.SyncSPECIALStatsSetter;
+import com.levviata.lspecial.network.SyncSPECIALStatsPacket;
+import net.minecraftforge.fml.client.registry.ClientRegistry;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.relauncher.Side;
+
+import static com.levviata.lspecial.LSPECIALMod.toggleSpecial;
+
+@Mod.EventBusSubscriber(modid = Tags.MOD_ID, value = Side.CLIENT)
+public class ClientProxy extends CommonProxy { // client only
+
+    @Override
+    public void preInit(FMLPreInitializationEvent event) {
+        super.preInit(event);
+        ClientRegistry.registerKeyBinding(toggleSpecial);
+        LSPECIALMod.NETWORK.registerMessage(SyncSPECIALStatsSetter.class, SyncSPECIALStatsPacket.class, 1, Side.CLIENT);
+    }
+
+    @Override
+    public void postInit(FMLPostInitializationEvent event) {
+        super.postInit(event);
+    }
+}
