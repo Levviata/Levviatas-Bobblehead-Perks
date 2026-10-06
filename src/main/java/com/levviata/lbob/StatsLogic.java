@@ -50,6 +50,8 @@ public class StatsLogic {
     private int previousCharisma = -1;
     private int previousAgility = -1;
 
+    // no guns have two receivers in one gun config other than the test revolver in 1.7.10, akimbo guns have two receivers, but its gun cfg dependant
+    // todo might as well be redundant, think remove
     private ItemStack modifiedGun = ItemStack.EMPTY;
     private Receiver modifiedReceiverOne;
     private Receiver modifiedReceiverTwo;
@@ -71,7 +73,6 @@ public class StatsLogic {
     private IMagazine originalMagazineTwo;
 
     private ItemStack loggedSednaGun = ItemStack.EMPTY;
-    private boolean warnedGunConfig = false;
 
     static List<Item> g = new ArrayList<>();
     static List<String> r = new ArrayList<>();
@@ -241,9 +242,9 @@ public class StatsLogic {
             }
         }
 
+        processReceiver(modifiedReceiverOne, originalDamageOne, originalDelayOne, heldStack, player);
+
         // 2
-        // no guns have two receivers in one other than the test debug in 1.7.10, akimbo guns have two receivers, but its gun cfg dependant.
-        // todo might as well be redundant, think remove
         modifiedReceiverTwo = null;
         if (receivers.length > 1) {
             if (intelligenceScore.getScorePoints() >= 5) {
@@ -268,7 +269,6 @@ public class StatsLogic {
 
             processReceiver(modifiedReceiverTwo, originalDamageTwo, originalDelayTwo, heldStack, player);
         }
-        processReceiver(modifiedReceiverOne, originalDamageOne, originalDelayOne, heldStack, player);
     }
 
     private void processReceiver(Receiver recIn, float ogDmg, int ogDelay, ItemStack heldStackIn, EntityPlayer player) {
