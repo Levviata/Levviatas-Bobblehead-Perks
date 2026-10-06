@@ -1,0 +1,162 @@
+package com.levviata.lspecial;
+
+import com.levviata.lspecial.potion.PotionAmplifiedRegeneration;
+import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.potion.Potion;
+import net.minecraft.scoreboard.IScoreCriteria;
+import net.minecraft.scoreboard.Score;
+import net.minecraft.scoreboard.ScoreObjective;
+import net.minecraft.scoreboard.Scoreboard;
+import org.lwjgl.input.Keyboard;
+
+public class SPECIALScoreboard {
+    public static SPECIALScoreboard inst = new SPECIALScoreboard();
+
+    public Scoreboard scoreboard;
+
+    public final String STRENGTH_BOARD = "Strength";
+    public final String PERCEPTION_BOARD = "Perception";
+    public final String ENDURANCE_BOARD = "Endurance";
+    public final String ENDURANCE_BONUS_BOARD = "Endurance_Bonus";
+    public final String INTELLIGENCE_BOARD = "Intelligence";
+    public final String CHARISMA_BOARD = "Charisma";
+    public final String CHARISMA_BONUS_BOARD = "Charisma_Bonus";
+    public final String AGILITY_BOARD = "Agility";
+    public final String LUCK_BOARD = "Luck";
+
+    public void startBoards() {
+        if (scoreboard.getObjective(STRENGTH_BOARD) == null) {
+            scoreboard.addScoreObjective(STRENGTH_BOARD, IScoreCriteria.DUMMY);
+        }
+        if (scoreboard.getObjective(PERCEPTION_BOARD) == null) {
+            scoreboard.addScoreObjective(PERCEPTION_BOARD, IScoreCriteria.DUMMY);
+        }
+        if (scoreboard.getObjective(ENDURANCE_BOARD) == null) {
+            scoreboard.addScoreObjective(ENDURANCE_BOARD, IScoreCriteria.DUMMY);
+        }
+        if (scoreboard.getObjective(ENDURANCE_BONUS_BOARD) == null) {
+            scoreboard.addScoreObjective(ENDURANCE_BONUS_BOARD, IScoreCriteria.DUMMY);
+        }
+        if (scoreboard.getObjective(CHARISMA_BOARD) == null) {
+            scoreboard.addScoreObjective(CHARISMA_BOARD, IScoreCriteria.DUMMY);
+        }
+        if (scoreboard.getObjective(CHARISMA_BONUS_BOARD) == null) {
+            scoreboard.addScoreObjective(CHARISMA_BONUS_BOARD, IScoreCriteria.DUMMY);
+        }
+        if (scoreboard.getObjective(INTELLIGENCE_BOARD) == null) {
+            scoreboard.addScoreObjective(INTELLIGENCE_BOARD, IScoreCriteria.DUMMY);
+        }
+        if (scoreboard.getObjective(AGILITY_BOARD) == null) {
+            scoreboard.addScoreObjective(AGILITY_BOARD, IScoreCriteria.DUMMY);
+        }
+        if (scoreboard.getObjective(LUCK_BOARD) == null) {
+            scoreboard.addScoreObjective(LUCK_BOARD, IScoreCriteria.DUMMY);
+        }
+    }
+
+    private Score strengthScore;
+    private Score perceptionScore;
+    private Score enduranceScore;
+    private Score enduranceBonusScore;
+    private Score intelligenceScore;
+    private Score charismaScore;
+    private Score charismaBonusScore;
+    private Score agilityScore;
+    private Score luckScore;
+
+    public boolean startScores(EntityPlayer player) {
+        ScoreObjective objStrength = scoreboard.getObjective(STRENGTH_BOARD);
+        ScoreObjective objPerception = scoreboard.getObjective(PERCEPTION_BOARD);
+        ScoreObjective objEndurance = scoreboard.getObjective(ENDURANCE_BOARD);
+        ScoreObjective objEnduranceBonus = scoreboard.getObjective(ENDURANCE_BONUS_BOARD);
+        ScoreObjective objCharisma = scoreboard.getObjective(CHARISMA_BOARD);
+        ScoreObjective objCharismaBonus = scoreboard.getObjective(CHARISMA_BONUS_BOARD);
+        ScoreObjective objIntelligence = scoreboard.getObjective(INTELLIGENCE_BOARD);
+        ScoreObjective objAgility = scoreboard.getObjective(AGILITY_BOARD);
+        ScoreObjective objLuck = scoreboard.getObjective(LUCK_BOARD);
+
+        strengthScore = scoreboard.getOrCreateScore(player.getName(), objStrength);
+        perceptionScore = scoreboard.getOrCreateScore(player.getName(), objPerception);
+        enduranceScore = scoreboard.getOrCreateScore(player.getName(), objEndurance);
+        enduranceBonusScore = scoreboard.getOrCreateScore(player.getName(), objEnduranceBonus);
+        charismaScore = scoreboard.getOrCreateScore(player.getName(), objCharisma);
+        charismaBonusScore = scoreboard.getOrCreateScore(player.getName(), objCharismaBonus);
+        intelligenceScore = scoreboard.getOrCreateScore(player.getName(), objIntelligence);
+        agilityScore = scoreboard.getOrCreateScore(player.getName(), objAgility);
+        luckScore = scoreboard.getOrCreateScore(player.getName(), objLuck);
+        return true;
+    }
+
+    public Score getStrengthScore() {
+        return strengthScore;
+    }
+
+    public void setStrengthScore(Score strengthScore) {
+        this.strengthScore = strengthScore;
+    }
+
+    public Score getPerceptionScore() {
+        return perceptionScore;
+    }
+
+    public void setPerceptionScore(Score perceptionScore) {
+        this.perceptionScore = perceptionScore;
+    }
+
+    public Score getEnduranceScore() {
+        return enduranceScore;
+    }
+
+    public void setEnduranceScore(Score enduranceScore) {
+        this.enduranceScore = enduranceScore;
+    }
+
+    public Score getEnduranceBonusScore() {
+        return enduranceBonusScore;
+    }
+
+    public void setEnduranceBonusScore(Score enduranceBonusScore) {
+        this.enduranceBonusScore = enduranceBonusScore;
+    }
+
+    public Score getIntelligenceScore() {
+        return intelligenceScore;
+    }
+
+    public void setIntelligenceScore(Score intelligenceScore) {
+        this.intelligenceScore = intelligenceScore;
+    }
+
+    public Score getCharismaScore() {
+        return charismaScore;
+    }
+
+    public void setCharismaScore(Score charismaScore) {
+        this.charismaScore = charismaScore;
+    }
+
+    public Score getCharismaBonusScore() {
+        return charismaBonusScore;
+    }
+
+    public void setCharismaBonusScore(Score charismaBonusScore) {
+        this.charismaBonusScore = charismaBonusScore;
+    }
+
+    public Score getAgilityScore() {
+        return agilityScore;
+    }
+
+    public void setAgilityScore(Score agilityScore) {
+        this.agilityScore = agilityScore;
+    }
+
+    public Score getLuckScore() {
+        return luckScore;
+    }
+
+    public void setLuckScore(Score luckScore) {
+        this.luckScore = luckScore;
+    }
+}

@@ -1,4 +1,4 @@
-package com.levviata.lbob;
+package com.levviata.lspecial;
 
 import com.hbm.items.weapon.sedna.BulletConfig;
 import com.hbm.items.weapon.sedna.mags.IMagazine;
@@ -8,7 +8,7 @@ import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 
-import static com.levviata.lbob.proxy.ClientProxy.luckScore;
+import static com.levviata.lspecial.SPECIALScoreboard.inst;
 
 public class RefundMagazine implements IMagazine<BulletConfig> {
 
@@ -77,7 +77,7 @@ public class RefundMagazine implements IMagazine<BulletConfig> {
         }
 
         boolean refundAmmo = Math.random() <
-                Math.min(luckScore.getScorePoints() * 0.05, 0.5);
+                Math.min(inst.getLuckScore().getScorePoints() * 0.05, 0.5);
 
         if (!refundAmmo) {
             return;
@@ -89,7 +89,7 @@ public class RefundMagazine implements IMagazine<BulletConfig> {
             return;
         }
 
-        int ogAmount = config.ammo.getStack().getCount();
+       // int ogAmount = config.ammo.getStack().getCount();
         ItemStack refund = config.ammo.getStack().copy();
         refund.setCount(ammoDebt);
 

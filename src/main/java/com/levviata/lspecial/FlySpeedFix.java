@@ -1,4 +1,4 @@
-package com.levviata.lbob;
+package com.levviata.lspecial;
 
 import com.google.common.collect.Multimap;
 import net.minecraft.entity.ai.attributes.AttributeModifier;

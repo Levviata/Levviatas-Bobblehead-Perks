@@ -1,4 +1,4 @@
-package com.levviata.lbob;
+package com.levviata.lspecial;
 
 import com.hbm.inventory.RecipesCommon;
 import com.hbm.items.ModItems;
@@ -18,10 +18,13 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.*;
 
-import static com.levviata.lbob.command.CommandSetFlySpeed.getPlayerFlySpeed;
-import static com.levviata.lbob.command.CommandSetSpeed.getPlayerSpeed;
-import static com.levviata.lbob.LSPECIALMod.LOGGER;
-import static com.levviata.lbob.proxy.ClientProxy.*;
+import static com.levviata.lspecial.GuiSPECIAL.hasInit;
+import static com.levviata.lspecial.SPECIALScoreboard.inst;
+import static com.levviata.lspecial.command.CommandSetFlySpeed.getPlayerFlySpeed;
+import static com.levviata.lspecial.command.CommandSetSpeed.getPlayerSpeed;
+import static com.levviata.lspecial.LSPECIALMod.LOGGER;
+import static com.levviata.lspecial.potion.PotionAmplifiedRegeneration.AMPLIFIED_REGENERATION_NAME;
+import static com.levviata.lspecial.LSPECIALMod.*;
 
 public class StatsLogic {
     // todo add uuid getter helper from attribute modifier
@@ -116,11 +119,11 @@ public class StatsLogic {
 
         ItemStack heldStack = player.getHeldItemMainhand();
 
-        scoreboard = player.getEntityWorld().getScoreboard();
+        inst.scoreboard = player.getEntityWorld().getScoreboard();
 
         // WARNING if the scores or scoreboards don't start, the mod is useless
-        startBoards();
-        startScores(player);
+        inst.startBoards();
+        inst.startScores(player);
 
         // strength
         IAttributeInstance strength = player.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE);
@@ -130,83 +133,98 @@ public class StatsLogic {
             double damage = 1 + damageCollection.iterator().next().getAmount();
 
             strength.removeModifier(ATTACK_DAMAGE_MODIFIER);
-            double newDamage = damage + strengthScore.getScorePoints();
+            double newDamage = damage + inst.getStrengthScore().getScorePoints();
             strength.applyModifier(new AttributeModifier(ATTACK_DAMAGE_MODIFIER, nameIn, newDamage, 0));
         }
 
         // endurance
         IAttributeInstance maxHealth = player.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH);
-        if (enduranceScore.getScorePoints() != previousHealth || player.getMaxHealth() != previousHealth) {
-            previousHealth = enduranceScore.getScorePoints();
+        if (inst.getEnduranceScore().getScorePoints() != previousHealth || player.getMaxHealth() != previousHealth) {
+            previousHealth = inst.getEnduranceScore().getScorePoints();
 
             maxHealth.removeModifier(MAX_HEALTH_UUID);
 
-            if (enduranceBonusScore.getScorePoints() == 1) {
-                if (player.isPotionActive(Objects.requireNonNull(Potion.getPotionFromResourceLocation("regeneration")))) {
+            maxHealth.applyModifier(new AttributeModifier(MAX_HEALTH_UUID, nameIn, inst.getEnduranceScore().getScorePoints(), 0));
+        }
+        if (inst.getEnduranceBonusScore().getScorePoints() == 1) {
+            if (Potion.getPotionFromResourceLocation("regeneration") != null && Potion.getPotionFromResourceLocation(AMPLIFIED_REGENERATION_NAME) != null) {
+                Potion a = Potion.getPotionFromResourceLocation("regeneration");
+                Potion b = Potion.getPotionFromResourceLocation(AMPLIFIED_REGENERATION_NAME);
+                if (player.isPotionActive(a)) {
                     // todo config to opt out of AMPLIFIED_REGENERATION and simply overwrite bonus if current has higher amplifier effect
-                    PotionEffect e = player.getActivePotionEffect(Objects.requireNonNull(Potion.getPotionFromResourceLocation("regeneration")));
-                    int cAmplifier = Objects.requireNonNull(e).getAmplifier();
-                    player.removeActivePotionEffect(e.getPotion());
-                    player.addPotionEffect(new PotionEffect(AMPLIFIED_REGENERATION, 5, cAmplifier + 1)); // potion copy of regeneration, needed to separate original and custom
+                    int cAmplifier = 0;
+                    PotionEffect ae = player.getActivePotionEffect(a);
+                    if (ae != null) {
+                        if (ae.getAmplifier() > 0) {
+                            cAmplifier = ae.getAmplifier();
+                            player.removeActivePotionEffect(a);
+                            player.addPotionEffect(new PotionEffect(b, 5, cAmplifier + 1));
+                        }
+                    }
                 } else {
-                    player.addPotionEffect(new PotionEffect(Objects.requireNonNull(Potion.getPotionFromResourceLocation("regeneration")), 5, 1));
+                    if (b != null) {
+                        if (!player.isPotionActive(b)) {
+                            player.addPotionEffect(new PotionEffect(Objects.requireNonNull(Potion.getPotionFromResourceLocation("regeneration")), 5, 1));
+                        }
+                    }
                 }
             }
-
-            maxHealth.applyModifier(new AttributeModifier(MAX_HEALTH_UUID, nameIn, enduranceScore.getScorePoints(), 0));
         }
 
         // charisma
         IAttributeInstance armor = player.getEntityAttribute(SharedMonsterAttributes.ARMOR);
         IAttributeInstance armorToughness = player.getEntityAttribute(SharedMonsterAttributes.ARMOR_TOUGHNESS);
-        if (charismaScore.getScorePoints() != previousCharisma) {
-            previousCharisma = charismaScore.getScorePoints();
+        if (inst.getCharismaScore().getScorePoints() != previousCharisma) {
+            previousCharisma = inst.getCharismaScore().getScorePoints();
 
             armor.removeModifier(ARMOR_UUID);
             armorToughness.removeModifier(ARMOR_TOUGHNESS_UUID);
 
-            if (charismaBonusScore.getScorePoints() == 1) {
-                player.addPotionEffect(new PotionEffect(Objects.requireNonNull(Potion.getPotionFromResourceLocation("resistance")), 5, 0));
+            armor.applyModifier(new AttributeModifier(ARMOR_UUID, nameIn, inst.getCharismaScore().getScorePoints() * 2, 0));
+            armorToughness.applyModifier(new AttributeModifier(ARMOR_TOUGHNESS_UUID, nameIn, inst.getCharismaScore().getScorePoints() * 0.5D, 0));
+        }
+        if (inst.getCharismaBonusScore().getScorePoints() == 1) {
+            if (Potion.getPotionFromResourceLocation("resistance") != null) {
+                player.addPotionEffect(new PotionEffect(Potion.getPotionFromResourceLocation("resistance"), 5, 0));
             }
-
-            armor.applyModifier(new AttributeModifier(ARMOR_UUID, nameIn, charismaScore.getScorePoints() * 2, 0));
-            armorToughness.applyModifier(new AttributeModifier(ARMOR_TOUGHNESS_UUID, nameIn, charismaScore.getScorePoints() * 0.5D, 0));
         }
 
         // agility
         // todo 0.5 increases for flight speed, also needs attribute modifier fly speed fix
         IAttributeInstance movementSpeed = player.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED);
-        IAttributeInstance flySpeed = player.getEntityAttribute(SharedMonsterAttributes.FLYING_SPEED);
-        if (agilityScore.getScorePoints() != previousAgility || getPlayerSpeed(player) != -1 && agilityScore.getScorePoints() != getPlayerSpeed(player)) {
+        //IAttributeInstance flySpeed = player.getEntityAttribute(SharedMonsterAttributes.FLYING_SPEED);
+        if (inst.getAgilityScore().getScorePoints() != previousAgility || getPlayerSpeed(player) != -1 && inst.getAgilityScore().getScorePoints() != getPlayerSpeed(player)) {
             if (getPlayerSpeed(player) > -1) {
                 previousAgility = getPlayerSpeed(player);
             } else {
-                previousAgility = agilityScore.getScorePoints();
+                previousAgility = inst.getAgilityScore().getScorePoints();
             }
 
             movementSpeed.removeModifier(MOVEMENT_SPEED_UUID);
-            flySpeed.removeModifier(FLYING_SPEED_UUID);
+            //flySpeed.removeModifier(FLYING_SPEED_UUID);
 
             // operationIn: multiplicative
             // 7.5% increase per point up to 75%
             if (getPlayerSpeed(player) > -1) {
                 movementSpeed.applyModifier(new AttributeModifier(MOVEMENT_SPEED_UUID, nameIn, getPlayerSpeed(player) * 0.075D, 1));
             } else {
-                movementSpeed.applyModifier(new AttributeModifier(MOVEMENT_SPEED_UUID, nameIn, agilityScore.getScorePoints() * 0.075D, 1));
+                movementSpeed.applyModifier(new AttributeModifier(MOVEMENT_SPEED_UUID, nameIn, inst.getAgilityScore().getScorePoints() * 0.075D, 1));
             }
 
-            if (getPlayerFlySpeed(player) > -1) {
+           /* if (getPlayerFlySpeed(player) > -1) {
                 flySpeed.applyModifier(new AttributeModifier(FLYING_SPEED_UUID, nameIn, getPlayerFlySpeed(player) * 0.075D, 1));
             } else {
                 flySpeed.applyModifier(new AttributeModifier(FLYING_SPEED_UUID, nameIn, agilityScore.getScorePoints() * 0.075D, 1));
-            }
+            }*/
         }
 
         // perception, intelligence, and luck
         // todo make perception increase found loot
 
-        if (intelligenceScore.getScorePoints() >= 5) {
-            heldStack.getItem().setMaxDamage(heldStack.getMetadata() - 1);
+        if (inst.getIntelligenceScore().getScorePoints() >= 5) {
+            if (heldStack.isItemStackDamageable()) {
+                heldStack.getItem().setMaxDamage(-1);
+            }
         }
 
         if (heldStack.getItem() instanceof ItemGunBaseSedna) {
@@ -247,7 +265,7 @@ public class StatsLogic {
         Receiver[] receivers = cfg.getReceivers(heldStack);
 
         // 1
-        if (intelligenceScore.getScorePoints() >= 5) {
+        if (inst.getIntelligenceScore().getScorePoints() >= 5) {
             ItemGunBaseNT.setWear(heldStack, 0, 0);
         }
 
@@ -258,7 +276,7 @@ public class StatsLogic {
         setOriginalValues(bCOne, modifiedReceiverOne, heldStack, true);
 
         if (!installedMagazineOne) {
-            if (luckScore.getScorePoints() > 0) { // if i have luck, install a magazine that can refund bullets
+            if (inst.getLuckScore().getScorePoints() > 0) { // if i have luck, install a magazine that can refund bullets
                 modifiedReceiverOne.mag(
                         new RefundMagazine(originalMagazineOne)
                 );
@@ -272,7 +290,7 @@ public class StatsLogic {
         // 2
         modifiedReceiverTwo = null;
         if (receivers.length > 1) {
-            if (intelligenceScore.getScorePoints() >= 5) {
+            if (inst.getIntelligenceScore().getScorePoints() >= 5) {
                 ItemGunBaseNT.setWear(heldStack, 1, ItemGunBaseNT.getWear(heldStack, 0) - maxDura);
             }
 
@@ -283,7 +301,7 @@ public class StatsLogic {
             setOriginalValues(bCTwo, modifiedReceiverTwo, heldStack, false);
 
             if (!installedMagazineTwo) {
-                if (luckScore.getScorePoints() > 0) { // if i have luck, install a magazine that can refund bullets
+                if (inst.getLuckScore().getScorePoints() > 0) { // if i have luck, install a magazine that can refund bullets
                     modifiedReceiverTwo.mag(
                             new RefundMagazine(originalMagazineTwo)
                     );
@@ -297,7 +315,7 @@ public class StatsLogic {
     }
 
     private void processReceiver(Receiver recIn, float ogDmg, int ogDelay, ItemStack heldStackIn, EntityPlayer player) {
-        recIn.dmg(ogDmg + perceptionScore.getScorePoints());
+        recIn.dmg(ogDmg + inst.getPerceptionScore().getScorePoints());
         //LOGGER.info(recIn.getInnateSpread(heldStackIn));
 
         BulletConfig bC = (BulletConfig) recIn.getMagazine(heldStackIn).getType(heldStackIn, player.inventory);
@@ -312,10 +330,10 @@ public class StatsLogic {
             ammoStack = ItemStack.EMPTY;
         }
 
-        int modifiedDelay = ogDelay - (intelligenceScore.getScorePoints() / 10);
+        int modifiedDelay = ogDelay - (inst.getIntelligenceScore().getScorePoints() / 10);
 
         if (modifiedDelay > 0) {
-            int formula = ogDelay - (intelligenceScore.getScorePoints() / 100);
+            int formula = ogDelay - (inst.getIntelligenceScore().getScorePoints() / 100);
             if (/*recIn.getRefireOnHold(heldStackIn) ||*/ g.contains(ammoStack.getItem())) { // automatic or loaded with buckshots (usually shotguns)
                 modifiedDelay = formula;
                 //LOGGER.info("setting a nerfed delay");
@@ -325,7 +343,7 @@ public class StatsLogic {
         }
         recIn.delay(modifiedDelay);
 
-        if (intelligenceScore.getScorePoints() >= 5) { // lesser perk
+        if (inst.getIntelligenceScore().getScorePoints() >= 5) { // lesser perk
             recIn.auto(true);
             if (!heldStackIn.isEmpty()) {
                 String rName = String.valueOf(heldStackIn.getItem().getRegistryName());
@@ -337,7 +355,7 @@ public class StatsLogic {
                 }
             }
         }
-        if (intelligenceScore.getScorePoints() >= 10) { // higher perk
+        if (inst.getIntelligenceScore().getScorePoints() >= 10) { // higher perk
             if (!heldStackIn.isEmpty()) {
                 String rName = String.valueOf(heldStackIn.getItem().getRegistryName());
                 if (r.contains(rName) ) { // match to all revolvers, thought of madness combat revolvers doing hell damage, so it's in

@@ -1,4 +1,4 @@
-package com.levviata.lbob.command;
+package com.levviata.lspecial.command;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
@@ -10,21 +10,21 @@ import net.minecraft.util.text.TextFormatting;
 
 import java.util.*;
 
-import static com.levviata.lbob.proxy.ClientProxy.*;
+import static com.levviata.lspecial.SPECIALScoreboard.inst;
 
-public class CommandSetSpeed extends CommandBase {
+public class CommandSetFlySpeed extends CommandBase {
 
     // Each player has their own speed value
     public static final Map<UUID, Integer> playerSpeeds = new HashMap<>();
 
     @Override
     public String getName() {
-        return "setspeed";
+        return "setflyspeed";
     }
 
     @Override
     public String getUsage(ICommandSender sender) {
-        return "/setspeed <speed>. Proportional to your Agility stat. -1 to reset";
+        return "/setflyspeed <speed>. Proportional to your Agility stat. -1 to reset";
     }
 
     @Override
@@ -43,16 +43,16 @@ public class CommandSetSpeed extends CommandBase {
         EntityPlayer player = (EntityPlayer) sender;
 
         // Get this player's agility score
-        int maxSpeed = agilityScore.getScorePoints();
+        int maxSpeed = inst.getAgilityScore().getScorePoints();
 
         // No argument
         if (args.length != 1) {
             player.sendMessage(new TextComponentString(
-                    TextFormatting.YELLOW + "Usage: /setspeed <speed>. -1 to reset"
+                    TextFormatting.YELLOW + "Usage: /setflyspeed <speed>. -1 to reset"
             ));
 
             player.sendMessage(new TextComponentString(
-                    TextFormatting.YELLOW + "Your speed range is "
+                    TextFormatting.YELLOW + "Your fly speed range is "
                             + TextFormatting.WHITE + "0"
                             + TextFormatting.YELLOW + " - "
                             + TextFormatting.WHITE + maxSpeed
@@ -72,7 +72,7 @@ public class CommandSetSpeed extends CommandBase {
             ));
 
             player.sendMessage(new TextComponentString(
-                    TextFormatting.YELLOW + "Your speed range is "
+                    TextFormatting.YELLOW + "Your fly speed range is "
                             + TextFormatting.WHITE + "0"
                             + TextFormatting.YELLOW + " - "
                             + TextFormatting.WHITE + maxSpeed
@@ -92,7 +92,7 @@ public class CommandSetSpeed extends CommandBase {
         playerSpeeds.put(player.getUniqueID(), actualSpeed);
 
         player.sendMessage(new TextComponentString(
-                TextFormatting.GREEN + "Your speed has been set to "
+                TextFormatting.GREEN + "Your fly speed has been set to "
                         + TextFormatting.WHITE + actualSpeed
                         + TextFormatting.GREEN + "."
         ));
@@ -112,7 +112,7 @@ public class CommandSetSpeed extends CommandBase {
     }
 
     // Helper method for getting a player's speed
-    public static int getPlayerSpeed(EntityPlayer player) {
+    public static int getPlayerFlySpeed(EntityPlayer player) {
         return playerSpeeds.getOrDefault(player.getUniqueID(), -1);
     }
 }

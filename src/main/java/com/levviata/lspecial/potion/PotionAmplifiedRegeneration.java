@@ -1,4 +1,4 @@
-package com.levviata.lbob.potion;
+package com.levviata.lspecial.potion;
 
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.potion.Potion;

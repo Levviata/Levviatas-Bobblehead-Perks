@@ -1,7 +1,7 @@
 {
 	"package": "",
 	"required": false,
-	"refmap": "mixins.lbob.refmap.json",
+	"refmap": "mixins.lspecial.refmap.json",
 	"target": "@env(DEFAULT)",
 	"minVersion": "0.8.5",
 	"compatibilityLevel": "JAVA_8",
