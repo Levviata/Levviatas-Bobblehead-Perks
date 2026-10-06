@@ -4,7 +4,6 @@ import com.hbm.inventory.RecipesCommon;
 import com.hbm.items.ModItems;
 import com.hbm.items.weapon.sedna.*;
 import com.hbm.items.weapon.sedna.mags.IMagazine;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.IAttributeInstance;
@@ -12,13 +11,15 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.scoreboard.Score;
+import net.minecraft.potion.Potion;
+import net.minecraft.potion.PotionEffect;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.*;
 
-import static com.levviata.lbob.CommandSetSpeed.getPlayerSpeed;
+import static com.levviata.lbob.command.CommandSetFlySpeed.getPlayerFlySpeed;
+import static com.levviata.lbob.command.CommandSetSpeed.getPlayerSpeed;
 import static com.levviata.lbob.LSPECIALMod.LOGGER;
 import static com.levviata.lbob.proxy.ClientProxy.*;
 
@@ -137,7 +138,21 @@ public class StatsLogic {
         IAttributeInstance maxHealth = player.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH);
         if (enduranceScore.getScorePoints() != previousHealth || player.getMaxHealth() != previousHealth) {
             previousHealth = enduranceScore.getScorePoints();
+
             maxHealth.removeModifier(MAX_HEALTH_UUID);
+
+            if (enduranceBonusScore.getScorePoints() == 1) {
+                if (player.isPotionActive(Objects.requireNonNull(Potion.getPotionFromResourceLocation("regeneration")))) {
+                    // todo config to opt out of AMPLIFIED_REGENERATION and simply overwrite bonus if current has higher amplifier effect
+                    PotionEffect e = player.getActivePotionEffect(Objects.requireNonNull(Potion.getPotionFromResourceLocation("regeneration")));
+                    int cAmplifier = Objects.requireNonNull(e).getAmplifier();
+                    player.removeActivePotionEffect(e.getPotion());
+                    player.addPotionEffect(new PotionEffect(AMPLIFIED_REGENERATION, 5, cAmplifier + 1)); // potion copy of regeneration, needed to separate original and custom
+                } else {
+                    player.addPotionEffect(new PotionEffect(Objects.requireNonNull(Potion.getPotionFromResourceLocation("regeneration")), 5, 1));
+                }
+            }
+
             maxHealth.applyModifier(new AttributeModifier(MAX_HEALTH_UUID, nameIn, enduranceScore.getScorePoints(), 0));
         }
 
@@ -150,6 +165,10 @@ public class StatsLogic {
             armor.removeModifier(ARMOR_UUID);
             armorToughness.removeModifier(ARMOR_TOUGHNESS_UUID);
 
+            if (charismaBonusScore.getScorePoints() == 1) {
+                player.addPotionEffect(new PotionEffect(Objects.requireNonNull(Potion.getPotionFromResourceLocation("resistance")), 5, 0));
+            }
+
             armor.applyModifier(new AttributeModifier(ARMOR_UUID, nameIn, charismaScore.getScorePoints() * 2, 0));
             armorToughness.applyModifier(new AttributeModifier(ARMOR_TOUGHNESS_UUID, nameIn, charismaScore.getScorePoints() * 0.5D, 0));
         }
@@ -157,6 +176,7 @@ public class StatsLogic {
         // agility
         // todo 0.5 increases for flight speed, also needs attribute modifier fly speed fix
         IAttributeInstance movementSpeed = player.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED);
+        IAttributeInstance flySpeed = player.getEntityAttribute(SharedMonsterAttributes.FLYING_SPEED);
         if (agilityScore.getScorePoints() != previousAgility || getPlayerSpeed(player) != -1 && agilityScore.getScorePoints() != getPlayerSpeed(player)) {
             if (getPlayerSpeed(player) > -1) {
                 previousAgility = getPlayerSpeed(player);
@@ -164,17 +184,21 @@ public class StatsLogic {
                 previousAgility = agilityScore.getScorePoints();
             }
 
-
             movementSpeed.removeModifier(MOVEMENT_SPEED_UUID);
+            flySpeed.removeModifier(FLYING_SPEED_UUID);
 
             // operationIn: multiplicative
             // 7.5% increase per point up to 75%
-            if (getPlayerSpeed(player) > -1) { // /velocity
+            if (getPlayerSpeed(player) > -1) {
                 movementSpeed.applyModifier(new AttributeModifier(MOVEMENT_SPEED_UUID, nameIn, getPlayerSpeed(player) * 0.075D, 1));
-                //LOGGER.info("player speed is: {}", getPlayerSpeed(player));
             } else {
                 movementSpeed.applyModifier(new AttributeModifier(MOVEMENT_SPEED_UUID, nameIn, agilityScore.getScorePoints() * 0.075D, 1));
-                //LOGGER.info("normal speed in");
+            }
+
+            if (getPlayerFlySpeed(player) > -1) {
+                flySpeed.applyModifier(new AttributeModifier(FLYING_SPEED_UUID, nameIn, getPlayerFlySpeed(player) * 0.075D, 1));
+            } else {
+                flySpeed.applyModifier(new AttributeModifier(FLYING_SPEED_UUID, nameIn, agilityScore.getScorePoints() * 0.075D, 1));
             }
         }
 
@@ -321,7 +345,7 @@ public class StatsLogic {
                     bC.armorThresholdNegation = piercing;
                     bC.armorPiercingPercent = ogPiercing + piercing; // since guns dont have piercing in their receivers, this adds onto the ammo's piercing*/
                     bC.doesPenetrate = true;
-                    bC.setHeadshot(2);
+                    bC.setHeadshot(3);
                 }
             }
         }

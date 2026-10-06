@@ -29,13 +29,8 @@ public class BobbleheadUse {
 
     @SubscribeEvent
     public void use(PlayerInteractEvent.RightClickItem event) {
-        //ItemStack bob = new ItemStack(Objects.requireNonNull(Item.getByNameOrId("hbm:bobblehead")));
-        ItemStack bob = new ItemStack(Objects.requireNonNull(Item.getByNameOrId("minecraft:dye"))); // test
-
-        LOGGER.info("Hi");
-        LOGGER.info(bob);
-        String s = String.valueOf(event.getItemStack().getItem().getRegistryName());
-        LOGGER.info(s);
+        ItemStack bob = new ItemStack(Objects.requireNonNull(Item.getByNameOrId("hbm:bobblehead")));
+        //ItemStack bob = new ItemStack(Objects.requireNonNull(Item.getByNameOrId("minecraft:dye"))); // test
 
         ItemStack stack = event.getItemStack();
         EntityPlayer player = event.getEntityPlayer();
@@ -46,7 +41,7 @@ public class BobbleheadUse {
         startBoards();
         startScores(player);
 
-        //LOGGER.error("Couldn't start the scoreboards, the mod is useless!");
+        //LOGGER.error("Couldn't start the scoreboards, the mod is useless!"); how do i check this
 
         // when a hbm:bobblehead is crouch right-clicked, I remove the item and set a flag as true
         if (stack.getItem().equals(bob.getItem()) && player.isSneaking()) {
@@ -117,7 +112,6 @@ public class BobbleheadUse {
             }
         }
 
-
         // comes with stat increases then has perks at X amount consumed, usually 5 or 10
         // total fallout bobbleheads is 7
         if (usedStrengthBob) {
@@ -142,19 +136,18 @@ public class BobbleheadUse {
 
         if (usedEnduranceBob) {
 
-            if (enduranceScore.getScorePoints() >= 20 && enduranceBonusScore.getScorePoints() != 1) { // perk, 5 bobs
-
+            if (enduranceScore.getScorePoints() >= 5 && enduranceBonusScore.getScorePoints() != 1) {
                 if (enduranceScore.getScorePoints() >= funLimit) {
                     enduranceScore.setScorePoints(funLimit);
                 } else {
-                    enduranceScore.setScorePoints(enduranceScore.getScorePoints() + 10);
+                    enduranceScore.setScorePoints(enduranceScore.getScorePoints() + 1);
                     enduranceBonusScore.setScorePoints(1);
                 }
             } else {
                 if (enduranceScore.getScorePoints() >= funLimit) {
                     enduranceScore.setScorePoints(funLimit);
                 } else {
-                    enduranceScore.setScorePoints(enduranceScore.getScorePoints() + 4);
+                    enduranceScore.setScorePoints(enduranceScore.getScorePoints() + 1);
                 }
             }
 
@@ -162,11 +155,19 @@ public class BobbleheadUse {
         }
 
         if (usedCharismaBob) { // plot armor
-            // todo perk
-            if (charismaScore.getScorePoints() >= funLimit) {
-                charismaScore.setScorePoints(funLimit);
+            if (charismaScore.getScorePoints() >= 5 && charismaBonusScore.getScorePoints() != 1) {
+                if (charismaScore.getScorePoints() >= funLimit) {
+                    charismaScore.setScorePoints(funLimit);
+                } else {
+                    charismaScore.setScorePoints(charismaScore.getScorePoints() + 1);
+                    charismaBonusScore.setScorePoints(1);
+                }
             } else {
-                charismaScore.setScorePoints(charismaScore.getScorePoints() + 1);
+                if (charismaScore.getScorePoints() >= funLimit) {
+                    charismaScore.setScorePoints(funLimit);
+                } else {
+                    charismaScore.setScorePoints(charismaScore.getScorePoints() + 1);
+                }
             }
 
             usedCharismaBob = false;
@@ -184,7 +185,6 @@ public class BobbleheadUse {
 
 
         if (usedAgilityBob) { // percentage
-            // todo keybind for tweaking current move speed after acquiring 5 agility bob
             if (agilityScore.getScorePoints() >= funLimit) {
                 agilityScore.setScorePoints(funLimit);
             } else {

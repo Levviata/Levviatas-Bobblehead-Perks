@@ -1,0 +1,118 @@
+package com.levviata.lbob.command;
+
+import net.minecraft.command.CommandBase;
+import net.minecraft.command.CommandException;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextFormatting;
+
+import java.util.*;
+
+import static com.levviata.lbob.proxy.ClientProxy.*;
+
+public class CommandSetSpeed extends CommandBase {
+
+    // Each player has their own speed value
+    public static final Map<UUID, Integer> playerSpeeds = new HashMap<>();
+
+    @Override
+    public String getName() {
+        return "setspeed";
+    }
+
+    @Override
+    public String getUsage(ICommandSender sender) {
+        return "/setspeed <speed>. Proportional to your Agility stat. -1 to reset";
+    }
+
+    @Override
+    public List<String> getAliases() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
+
+        // Players only
+        if (!(sender instanceof EntityPlayer)) {
+            throw new CommandException("This command can only be used by players.");
+        }
+
+        EntityPlayer player = (EntityPlayer) sender;
+
+        // Get this player's agility score
+        int maxSpeed = agilityScore.getScorePoints();
+
+        // No argument
+        if (args.length != 1) {
+            player.sendMessage(new TextComponentString(
+                    TextFormatting.YELLOW + "Usage: /setspeed <speed>. -1 to reset"
+            ));
+
+            player.sendMessage(new TextComponentString(
+                    TextFormatting.YELLOW + "Your speed range is "
+                            + TextFormatting.WHITE + "0"
+                            + TextFormatting.YELLOW + " - "
+                            + TextFormatting.WHITE + maxSpeed
+                            + TextFormatting.YELLOW + " based on your Agility."
+            ));
+
+            return;
+        }
+
+        int requestedSpeed;
+
+        try {
+            requestedSpeed = Integer.parseInt(args[0]);
+        } catch (NumberFormatException e) {
+            player.sendMessage(new TextComponentString(
+                    TextFormatting.RED + "Speed must be a whole number. -1 to reset."
+            ));
+
+            player.sendMessage(new TextComponentString(
+                    TextFormatting.YELLOW + "Your speed range is "
+                            + TextFormatting.WHITE + "0"
+                            + TextFormatting.YELLOW + " - "
+                            + TextFormatting.WHITE + maxSpeed
+            ));
+
+            return;
+        }
+
+        // Clamp the requested value between 0 and the player's agility
+        int actualSpeed = Math.max(0, Math.min(requestedSpeed, maxSpeed));
+
+        if (requestedSpeed == -1) {
+            actualSpeed = -1;
+        }
+
+        // Store this player's speed
+        playerSpeeds.put(player.getUniqueID(), actualSpeed);
+
+        player.sendMessage(new TextComponentString(
+                TextFormatting.GREEN + "Your speed has been set to "
+                        + TextFormatting.WHITE + actualSpeed
+                        + TextFormatting.GREEN + "."
+        ));
+
+        player.sendMessage(new TextComponentString(
+                TextFormatting.GRAY + "Your allowed range is "
+                        + TextFormatting.WHITE + "0"
+                        + TextFormatting.GRAY + " - "
+                        + TextFormatting.WHITE + maxSpeed
+                        + TextFormatting.GRAY + "."
+        ));
+    }
+
+    @Override
+    public boolean checkPermission(MinecraftServer server, ICommandSender sender) {
+        return sender instanceof EntityPlayer;
+    }
+
+    // Helper method for getting a player's speed
+    public static int getPlayerSpeed(EntityPlayer player) {
+        return playerSpeeds.getOrDefault(player.getUniqueID(), -1);
+    }
+}
