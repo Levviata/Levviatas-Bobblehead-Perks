@@ -1,7 +1,7 @@
 package com.levviata.lspecial.proxy;
 
-import com.levviata.lspecial.*;
-
+import com.levviata.lspecial.StatsLogic;
+import com.levviata.lspecial.Tags;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;

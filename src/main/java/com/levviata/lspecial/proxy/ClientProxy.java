@@ -2,8 +2,8 @@ package com.levviata.lspecial.proxy;
 
 import com.levviata.lspecial.LSPECIALMod;
 import com.levviata.lspecial.Tags;
-import com.levviata.lspecial.network.SyncSPECIALStatsSetter;
 import com.levviata.lspecial.network.SyncSPECIALStatsPacket;
+import com.levviata.lspecial.network.SyncSPECIALStatsSetter;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;

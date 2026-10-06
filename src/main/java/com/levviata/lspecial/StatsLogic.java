@@ -18,12 +18,10 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.util.*;
 
-import static com.levviata.lspecial.SPECIALScoreboard.inst;
-import static com.levviata.lspecial.command.CommandSetFlySpeed.getPlayerFlySpeed;
-import static com.levviata.lspecial.command.CommandSetSpeed.getPlayerSpeed;
 import static com.levviata.lspecial.LSPECIALMod.LOGGER;
+import static com.levviata.lspecial.SPECIALScoreboard.inst;
+import static com.levviata.lspecial.command.CommandSetSpeed.getPlayerSpeed;
 import static com.levviata.lspecial.potion.PotionAmplifiedRegeneration.AMPLIFIED_REGENERATION_NAME;
-import static com.levviata.lspecial.LSPECIALMod.*;
 
 public class StatsLogic {
     // todo add uuid getter helper from attribute modifier
