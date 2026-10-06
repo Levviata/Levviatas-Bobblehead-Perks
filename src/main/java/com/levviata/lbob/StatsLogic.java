@@ -4,6 +4,7 @@ import com.hbm.inventory.RecipesCommon;
 import com.hbm.items.ModItems;
 import com.hbm.items.weapon.sedna.*;
 import com.hbm.items.weapon.sedna.mags.IMagazine;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.IAttributeInstance;
@@ -60,6 +61,8 @@ public class StatsLogic {
     private int originalProjectileAmountTwo;
     private float originalAmmoPiercingOne;
     private float originalAmmoPiercingTwo;
+    private float originalDurabilityOne;
+    private float originalDurabilityTwo;
     private ItemStack ammoStack = ItemStack.EMPTY;
     private boolean modified;
     private boolean installedMagazineOne;
@@ -68,6 +71,7 @@ public class StatsLogic {
     private IMagazine originalMagazineTwo;
 
     private ItemStack loggedSednaGun = ItemStack.EMPTY;
+    private boolean warnedGunConfig = false;
 
     static List<Item> g = new ArrayList<>();
     static List<String> r = new ArrayList<>();
@@ -196,56 +200,11 @@ public class StatsLogic {
                 }
 
                 ItemGunBaseNT gun = (ItemGunBaseNT) heldStack.getItem();
-                GunConfig config = gun.getConfig(heldStack, 0);
-                Receiver[] receivers = config.getReceivers(heldStack);
-
-                // 1
-                if (intelligenceScore.getScorePoints() >= 5) {
-                    ItemGunBaseNT.setWear(heldStack, 0, config.getDurability(heldStack));
-                }
-
-                modifiedReceiverOne = receivers[0];
-
-                BulletConfig bCOne = (BulletConfig) modifiedReceiverOne.getMagazine(heldStack).getType(heldStack, player.inventory);
-
-                setOriginalValues(bCOne, modifiedReceiverOne, heldStack, true);
-
-                if (!installedMagazineOne) {
-                    if (luckScore.getScorePoints() > 0) { // if i have luck, install a magazine that can refund bullets
-                        modifiedReceiverOne.mag(
-                                new RefundMagazine(originalMagazineOne)
-                        );
-
-                        installedMagazineOne = true;
-                    }
-                }
-
-                processReceiver(modifiedReceiverOne, originalDamageOne, originalDelayOne, heldStack, player);
-
-                // 2
-                modifiedReceiverTwo = null;
-                if (receivers.length > 1) {
-                    if (intelligenceScore.getScorePoints() >= 5) {
-                        ItemGunBaseNT.setWear(heldStack, 1, config.getDurability(heldStack));
-                    }
-
-                    modifiedReceiverTwo = receivers[1];
-
-                    BulletConfig bCTwo = (BulletConfig) modifiedReceiverTwo.getMagazine(heldStack).getType(heldStack, player.inventory);
-
-                    setOriginalValues(bCTwo, modifiedReceiverTwo, heldStack, false);
-
-                    if (!installedMagazineTwo) {
-                        if (luckScore.getScorePoints() > 0) { // if i have luck, install a magazine that can refund bullets
-                            modifiedReceiverTwo.mag(
-                                    new RefundMagazine(originalMagazineTwo)
-                            );
-
-                            installedMagazineTwo = true;
-                        }
-                    }
-
-                    processReceiver(modifiedReceiverTwo, originalDamageTwo, originalDelayTwo, heldStack, player);
+                int configs = gun.getConfigCount();
+                for (int gunIndex = 0; gunIndex < configs; gunIndex++) {
+                    // modify guns using their unique gun config
+                    // akimbo guns have two configs so this loop would trigger twice, modifying both
+                    modifyGuns(heldStack, player, gun.getConfig(heldStack, gunIndex));
                 }
 
                 modifiedGun = heldStack.copy();
@@ -255,6 +214,61 @@ public class StatsLogic {
             //clean for next cycle
             cleanGun(heldStack, player);
         }
+    }
+
+    public void modifyGuns(ItemStack heldStack, EntityPlayer player, GunConfig cfg) {
+        float maxDura = cfg.getDurability(heldStack);
+        Receiver[] receivers = cfg.getReceivers(heldStack);
+
+        // 1
+        if (intelligenceScore.getScorePoints() >= 5) {
+            ItemGunBaseNT.setWear(heldStack, 0,  ItemGunBaseNT.getWear(heldStack, 0) - maxDura);
+        }
+
+        modifiedReceiverOne = receivers[0];
+
+        BulletConfig bCOne = (BulletConfig) modifiedReceiverOne.getMagazine(heldStack).getType(heldStack, player.inventory);
+
+        setOriginalValues(bCOne, modifiedReceiverOne, heldStack, true);
+
+        if (!installedMagazineOne) {
+            if (luckScore.getScorePoints() > 0) { // if i have luck, install a magazine that can refund bullets
+                modifiedReceiverOne.mag(
+                        new RefundMagazine(originalMagazineOne)
+                );
+
+                installedMagazineOne = true;
+            }
+        }
+
+        // 2
+        // no guns have two receivers in one other than the test debug in 1.7.10, akimbo guns have two receivers, but its gun cfg dependant.
+        // todo might as well be redundant, think remove
+        modifiedReceiverTwo = null;
+        if (receivers.length > 1) {
+            if (intelligenceScore.getScorePoints() >= 5) {
+                ItemGunBaseNT.setWear(heldStack, 1, ItemGunBaseNT.getWear(heldStack, 0) - maxDura);
+            }
+
+            modifiedReceiverTwo = receivers[1];
+
+            BulletConfig bCTwo = (BulletConfig) modifiedReceiverTwo.getMagazine(heldStack).getType(heldStack, player.inventory);
+
+            setOriginalValues(bCTwo, modifiedReceiverTwo, heldStack, false);
+
+            if (!installedMagazineTwo) {
+                if (luckScore.getScorePoints() > 0) { // if i have luck, install a magazine that can refund bullets
+                    modifiedReceiverTwo.mag(
+                            new RefundMagazine(originalMagazineTwo)
+                    );
+
+                    installedMagazineTwo = true;
+                }
+            }
+
+            processReceiver(modifiedReceiverTwo, originalDamageTwo, originalDelayTwo, heldStack, player);
+        }
+        processReceiver(modifiedReceiverOne, originalDamageOne, originalDelayOne, heldStack, player);
     }
 
     private void processReceiver(Receiver recIn, float ogDmg, int ogDelay, ItemStack heldStackIn, EntityPlayer player) {
@@ -310,9 +324,12 @@ public class StatsLogic {
     }
 
     public void cleanGun(ItemStack heldStack, EntityPlayer player) {
+        ItemGunBaseNT gun = (ItemGunBaseNT) heldStack.getItem();
+
         // 1
         BulletConfig bCOne = (BulletConfig) modifiedReceiverOne.getMagazine(heldStack).getType(heldStack, player.inventory);
 
+        ItemGunBaseNT.setWear(heldStack, 1, originalDurabilityOne);
         bCOne.armorPiercingPercent = originalAmmoPiercingOne;
         modifiedReceiverOne.dmg(originalDamageOne);
         modifiedReceiverOne.delay(originalDelayOne);
@@ -321,6 +338,10 @@ public class StatsLogic {
 
         // 2
         if (modifiedReceiverTwo != null) {
+            if (gun.getConfigCount() > 0) {
+                ItemGunBaseNT.setWear(heldStack, 1, originalDurabilityTwo);
+            }
+
             BulletConfig bCTwo = (BulletConfig) modifiedReceiverTwo.getMagazine(heldStack).getType(heldStack, player.inventory);
 
             bCTwo.armorPiercingPercent = originalAmmoPiercingTwo;
@@ -339,7 +360,11 @@ public class StatsLogic {
     }
 
     public void setOriginalValues(BulletConfig bCIn, Receiver rIn, ItemStack heldStack, boolean isOneOrTwo) {
+        ItemGunBaseNT gun = (ItemGunBaseNT) heldStack.getItem();
+        GunConfig cfg;
         if (isOneOrTwo) {
+            cfg = gun.getConfig(heldStack, 0);
+            originalDurabilityTwo = cfg.getDurability(heldStack);
             originalMagazineOne = rIn.getMagazine(heldStack);
             originalAmmoPiercingOne = bCIn.armorPiercingPercent;
             originalDamageOne = rIn.getBaseDamage(heldStack);
@@ -347,6 +372,12 @@ public class StatsLogic {
             originalProjectileAmountOne = rIn.getRoundsPerCycle(heldStack);
         }
         if (!isOneOrTwo) {
+            if (gun.getConfigCount() > 0) {
+                cfg = gun.getConfig(heldStack, 1);
+                originalDurabilityTwo = cfg.getDurability(heldStack);
+            } else {
+                originalDurabilityTwo = -1;
+            }
             originalMagazineTwo = rIn.getMagazine(heldStack);
             originalAmmoPiercingTwo = bCIn.armorPiercingPercent;
             originalDamageTwo = rIn.getBaseDamage(heldStack);
