@@ -20,6 +20,7 @@ import java.util.*;
 
 import static com.levviata.lspecial.LSPECIALMod.LOGGER;
 import static com.levviata.lspecial.SPECIALScoreboard.inst;
+import static com.levviata.lspecial.command.CommandSetFlySpeed.getPlayerFlySpeed;
 import static com.levviata.lspecial.command.CommandSetSpeed.getPlayerSpeed;
 import static com.levviata.lspecial.potion.PotionAmplifiedRegeneration.AMPLIFIED_REGENERATION_NAME;
 
@@ -161,7 +162,7 @@ public class StatsLogic {
         // agility
         // todo 0.5 increases for flight speed, also needs attribute modifier fly speed fix
         IAttributeInstance movementSpeed = player.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED);
-        //IAttributeInstance flySpeed = player.getEntityAttribute(SharedMonsterAttributes.FLYING_SPEED);
+        IAttributeInstance flySpeed = player.getEntityAttribute(SharedMonsterAttributes.FLYING_SPEED);
         if (inst.getAgilityScore().getScorePoints() != previousAgility || getPlayerSpeed(player) != -1 && inst.getAgilityScore().getScorePoints() != getPlayerSpeed(player)) {
             if (getPlayerSpeed(player) > -1) {
                 previousAgility = getPlayerSpeed(player);
@@ -180,11 +181,11 @@ public class StatsLogic {
                 movementSpeed.applyModifier(new AttributeModifier(MOVEMENT_SPEED_UUID, nameIn, inst.getAgilityScore().getScorePoints() * 0.075D, 1));
             }
 
-           /* if (getPlayerFlySpeed(player) > -1) {
+           if (getPlayerFlySpeed(player) > -1) {
                 flySpeed.applyModifier(new AttributeModifier(FLYING_SPEED_UUID, nameIn, getPlayerFlySpeed(player) * 0.075D, 1));
             } else {
-                flySpeed.applyModifier(new AttributeModifier(FLYING_SPEED_UUID, nameIn, agilityScore.getScorePoints() * 0.075D, 1));
-            }*/
+                flySpeed.applyModifier(new AttributeModifier(FLYING_SPEED_UUID, nameIn, inst.getAgilityScore().getScorePoints() * 0.075D, 1));
+            }
         }
 
         givePotions(player);
@@ -378,10 +379,9 @@ public class StatsLogic {
 
     public void setOriginalValues(BulletConfig bCIn, Receiver rIn, ItemStack heldStack, boolean isOneOrTwo) {
         ItemGunBaseNT gun = (ItemGunBaseNT) heldStack.getItem();
-        GunConfig cfg;
+        GunConfig cfg = gun.getConfig(heldStack, gunIndex);;
         if (isOneOrTwo) {
-            cfg = gun.getConfig(heldStack, 0);
-            originalDurabilityTwo = cfg.getDurability(heldStack);
+            originalDurabilityOne = cfg.getDurability(heldStack);
             originalMagazineOne = rIn.getMagazine(heldStack);
             originalAmmoPiercingOne = bCIn.armorPiercingPercent;
             originalDamageOne = rIn.getBaseDamage(heldStack);
@@ -389,12 +389,7 @@ public class StatsLogic {
             originalProjectileAmountOne = rIn.getRoundsPerCycle(heldStack);
         }
         if (!isOneOrTwo) {
-            if (gun.getConfigCount() > 0) {
-                cfg = gun.getConfig(heldStack, 1);
-                originalDurabilityTwo = cfg.getDurability(heldStack);
-            } else {
-                originalDurabilityTwo = -1;
-            }
+            originalDurabilityTwo = cfg.getDurability(heldStack);
             originalMagazineTwo = rIn.getMagazine(heldStack);
             originalAmmoPiercingTwo = bCIn.armorPiercingPercent;
             originalDamageTwo = rIn.getBaseDamage(heldStack);
@@ -415,8 +410,6 @@ public class StatsLogic {
                     PotionEffect ae = player.getActivePotionEffect(a);
                     if (ae != null) {
                         cAmplifier = ae.getAmplifier();
-                        LOGGER.info(ae);
-                        LOGGER.info(cAmplifier);
                         player.removePotionEffect(a);
                         player.addPotionEffect(new PotionEffect(b, ae.getDuration(), cAmplifier + 1));
                     }
