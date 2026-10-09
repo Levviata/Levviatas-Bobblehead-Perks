@@ -27,8 +27,8 @@ import static com.levviata.lspecial.potion.PotionAmplifiedRegeneration.AMPLIFIED
 public class StatsLogic {
     // todo add uuid getter helper from attribute modifier
     //vanilla uuids
-    private static final UUID ATTACK_DAMAGE_MODIFIER = UUID.fromString("CB3F55D3-645C-4F38-A497-9C13A33DB5CF");
-    private static final UUID ATTACK_SPEED_MODIFIER = UUID.fromString("FA233E1C-4180-4865-B01B-BCCE9785ACA3");
+    private static final UUID ATTACK_DAMAGE_UUID = UUID.fromString("CB3F55D3-645C-4F38-A497-9C13A33DB5CF");
+    private static final UUID ATTACK_SPEED_UUID = UUID.fromString("FA233E1C-4180-4865-B01B-BCCE9785ACA3");
     // randomized uuids, same UUIDs as my mod Attribute Modifier
     private static final UUID MAX_HEALTH_UUID =
             UUID.fromString("5b94c2f0-6a6e-4b7d-9f6f-8d2a4d7c1e01");
@@ -52,32 +52,22 @@ public class StatsLogic {
     private int previousCharisma = -1;
     private int previousAgility = -1;
 
-    // no guns have two receivers in one gun config other than the test revolver in 1.7.10, akimbo guns have two receivers, but its gun cfg dependant
-    // todo might as well be redundant, think remove
     private ItemStack modifiedGun = ItemStack.EMPTY;
-    private Receiver modifiedReceiverOne;
-    private Receiver modifiedReceiverTwo;
-    private float originalDamageOne;
-    private float originalDamageTwo;
-    private int originalDelayOne;
-    private int originalDelayTwo;
-    private int originalProjectileAmountOne;
-    private int originalProjectileAmountTwo;
-    private float originalAmmoPiercingOne;
-    private float originalAmmoPiercingTwo;
-    private float originalDurabilityOne;
-    private float originalDurabilityTwo;
-    private ItemStack ammoStack = ItemStack.EMPTY;
+    private Receiver modifiedReceiver;
     private boolean modified;
-    private boolean installedMagazineOne;
-    private boolean installedMagazineTwo;
-    private IMagazine originalMagazineOne;
-    private IMagazine originalMagazineTwo;
+    private boolean installedMagazine;
+    private float originalDamage;
+    private int originalDelay;
+    private int originalProjectileAmount;
+    private float originalAmmoPiercing;
+    private float originalDurability;
+    private IMagazine originalMagazine;
 
     private int gunIndex = -1;
     int potionTime = 115;
 
     private ItemStack loggedSednaGun = ItemStack.EMPTY;
+    private static final List<UUID> uuids = new ArrayList<>();
 
     static List<Item> g = new ArrayList<>();
     static List<String> r = new ArrayList<>();
@@ -131,9 +121,9 @@ public class StatsLogic {
 
             double damage = 1 + damageCollection.iterator().next().getAmount();
 
-            strength.removeModifier(ATTACK_DAMAGE_MODIFIER);
+            strength.removeModifier(ATTACK_DAMAGE_UUID);
             double newDamage = damage + inst.getStrengthScore().getScorePoints();
-            strength.applyModifier(new AttributeModifier(ATTACK_DAMAGE_MODIFIER, nameIn, newDamage, 0));
+            strength.applyModifier(new AttributeModifier(ATTACK_DAMAGE_UUID, nameIn, newDamage, 0));
         }
 
         // endurance
@@ -235,54 +225,27 @@ public class StatsLogic {
     public void modifyGuns(ItemStack heldStack, EntityPlayer player, GunConfig cfg) {
         Receiver[] receivers = cfg.getReceivers(heldStack);
 
-        // 1
         if (inst.getIntelligenceScore().getScorePoints() >= 5) {
             ItemGunBaseNT.setWear(heldStack, 0, 0);
         }
 
-        modifiedReceiverOne = receivers[0];
+        modifiedReceiver = receivers[0];
 
-        BulletConfig bCOne = (BulletConfig) modifiedReceiverOne.getMagazine(heldStack).getType(heldStack, player.inventory);
+        BulletConfig bCOne = (BulletConfig) modifiedReceiver.getMagazine(heldStack).getType(heldStack, player.inventory);
 
-        setOriginalValues(bCOne, modifiedReceiverOne, heldStack, true);
+        setOriginalValues(bCOne, modifiedReceiver, heldStack);
 
-        if (!installedMagazineOne) {
+        if (!installedMagazine) {
             if (inst.getLuckScore().getScorePoints() > 0) { // if i have luck, install a magazine that can refund bullets
-                modifiedReceiverOne.mag(
-                        new RefundMagazine(originalMagazineOne)
+                modifiedReceiver.mag(
+                        new RefundMagazine(originalMagazine)
                 );
 
-                installedMagazineOne = true;
+                installedMagazine = true;
             }
         }
 
-        processReceiver(modifiedReceiverOne, originalDamageOne, originalDelayOne, heldStack, player);
-
-        // 2
-        modifiedReceiverTwo = null;
-        if (receivers.length > 1) {
-            if (inst.getIntelligenceScore().getScorePoints() >= 5) {
-                ItemGunBaseNT.setWear(heldStack, 0, 0);
-            }
-
-            modifiedReceiverTwo = receivers[1];
-
-            BulletConfig bCTwo = (BulletConfig) modifiedReceiverTwo.getMagazine(heldStack).getType(heldStack, player.inventory);
-
-            setOriginalValues(bCTwo, modifiedReceiverTwo, heldStack, false);
-
-            if (!installedMagazineTwo) {
-                if (inst.getLuckScore().getScorePoints() > 0) { // if i have luck, install a magazine that can refund bullets
-                    modifiedReceiverTwo.mag(
-                            new RefundMagazine(originalMagazineTwo)
-                    );
-
-                    installedMagazineTwo = true;
-                }
-            }
-
-            processReceiver(modifiedReceiverTwo, originalDamageTwo, originalDelayTwo, heldStack, player);
-        }
+        processReceiver(modifiedReceiver, originalDamage, originalDelay, heldStack, player);
     }
 
     private void processReceiver(Receiver recIn, float ogDmg, int ogDelay, ItemStack heldStackIn, EntityPlayer player) {
@@ -292,6 +255,7 @@ public class StatsLogic {
         //LOGGER.info(recIn.getInnateSpread(heldStackIn));
 
         BulletConfig bC = (BulletConfig) recIn.getMagazine(heldStackIn).getType(heldStackIn, player.inventory);
+        ItemStack ammoStack;
         if (bC.ammo != null) {
             ItemStack c = bC.ammo.getStack();
 
@@ -343,59 +307,36 @@ public class StatsLogic {
     }
 
     public void cleanGun(ItemStack heldStack, EntityPlayer player) {
-        // 1
-        BulletConfig bCOne = (BulletConfig) modifiedReceiverOne.getMagazine(heldStack).getType(heldStack, player.inventory);
+        BulletConfig bCOne = (BulletConfig) modifiedReceiver.getMagazine(heldStack).getType(heldStack, player.inventory);
 
         if (gunIndex != -1) {
             for (int i = 0; i < gunIndex; i++) { // run through all gun configs
-                ItemGunBaseNT.setWear(heldStack, i, originalDurabilityOne);
+                ItemGunBaseNT.setWear(heldStack, i, originalDurability);
             }
         }
-        bCOne.armorPiercingPercent = originalAmmoPiercingOne;
-        modifiedReceiverOne.dmg(originalDamageOne);
-        modifiedReceiverOne.delay(originalDelayOne);
-        modifiedReceiverOne.rounds(originalProjectileAmountOne);
-        modifiedReceiverOne.mag(originalMagazineOne);
-
-        // 2
-        if (modifiedReceiverTwo != null) {
-            BulletConfig bCTwo = (BulletConfig) modifiedReceiverTwo.getMagazine(heldStack).getType(heldStack, player.inventory);
-
-            bCTwo.armorPiercingPercent = originalAmmoPiercingTwo;
-            modifiedReceiverTwo.dmg(originalDamageTwo);
-            modifiedReceiverTwo.delay(originalDelayTwo);
-            modifiedReceiverTwo.rounds(originalProjectileAmountTwo);
-            modifiedReceiverTwo.mag(originalMagazineTwo);
-        }
+        bCOne.armorPiercingPercent = originalAmmoPiercing;
+        modifiedReceiver.dmg(originalDamage);
+        modifiedReceiver.delay(originalDelay);
+        modifiedReceiver.rounds(originalProjectileAmount);
+        modifiedReceiver.mag(originalMagazine);
 
         gunIndex = 0;
-        installedMagazineOne = false;
-        installedMagazineTwo = false;
+        installedMagazine = false;
         modifiedGun = ItemStack.EMPTY;
-        modifiedReceiverOne = null;
-        modifiedReceiverTwo = null;
+        modifiedReceiver = null;
         modified = false;
     }
 
-    public void setOriginalValues(BulletConfig bCIn, Receiver rIn, ItemStack heldStack, boolean isOneOrTwo) {
+    public void setOriginalValues(BulletConfig bCIn, Receiver rIn, ItemStack heldStack) {
         ItemGunBaseNT gun = (ItemGunBaseNT) heldStack.getItem();
-        GunConfig cfg = gun.getConfig(heldStack, gunIndex);;
-        if (isOneOrTwo) {
-            originalDurabilityOne = cfg.getDurability(heldStack);
-            originalMagazineOne = rIn.getMagazine(heldStack);
-            originalAmmoPiercingOne = bCIn.armorPiercingPercent;
-            originalDamageOne = rIn.getBaseDamage(heldStack);
-            originalDelayOne = rIn.getDelayAfterFire(heldStack);
-            originalProjectileAmountOne = rIn.getRoundsPerCycle(heldStack);
-        }
-        if (!isOneOrTwo) {
-            originalDurabilityTwo = cfg.getDurability(heldStack);
-            originalMagazineTwo = rIn.getMagazine(heldStack);
-            originalAmmoPiercingTwo = bCIn.armorPiercingPercent;
-            originalDamageTwo = rIn.getBaseDamage(heldStack);
-            originalDelayTwo = rIn.getDelayAfterFire(heldStack);
-            originalProjectileAmountTwo = rIn.getRoundsPerCycle(heldStack);
-        }
+        GunConfig cfg = gun.getConfig(heldStack, gunIndex);
+
+        originalDurability = cfg.getDurability(heldStack);
+        originalMagazine = rIn.getMagazine(heldStack);
+        originalAmmoPiercing = bCIn.armorPiercingPercent;
+        originalDamage = rIn.getBaseDamage(heldStack);
+        originalDelay = rIn.getDelayAfterFire(heldStack);
+        originalProjectileAmount = rIn.getRoundsPerCycle(heldStack);
     }
 
     public void givePotions(EntityPlayer player) {
@@ -424,5 +365,21 @@ public class StatsLogic {
                 player.addPotionEffect(new PotionEffect(Potion.getPotionFromResourceLocation("resistance"), potionTime, 0));
             }
         }
+    }
+
+    public static List<UUID> getUUIDs() {
+        if (uuids.isEmpty()) {
+            uuids.add(ATTACK_DAMAGE_UUID);
+            uuids.add(ATTACK_SPEED_UUID);
+            uuids.add(MAX_HEALTH_UUID);
+            uuids.add(FOLLOW_RANGE_UUID);
+            uuids.add(KNOCKBACK_RESISTANCE_UUID);
+            uuids.add(MOVEMENT_SPEED_UUID);
+            uuids.add(FLYING_SPEED_UUID);
+            uuids.add(ARMOR_UUID);
+            uuids.add(ARMOR_TOUGHNESS_UUID);
+            uuids.add(LUCK_UUID);
+        }
+        return uuids;
     }
 }
