@@ -74,6 +74,7 @@ public class StatsLogic {
     private IMagazine originalMagazineTwo;
 
     private int gunIndex = -1;
+    int potionTime = 115;
 
     private ItemStack loggedSednaGun = ItemStack.EMPTY;
 
@@ -143,30 +144,6 @@ public class StatsLogic {
 
             maxHealth.applyModifier(new AttributeModifier(MAX_HEALTH_UUID, nameIn, inst.getEnduranceScore().getScorePoints(), 0));
         }
-        if (inst.getEnduranceBonusScore().getScorePoints() == 1) {
-            if (Potion.getPotionFromResourceLocation("regeneration") != null && Potion.getPotionFromResourceLocation(AMPLIFIED_REGENERATION_NAME) != null) {
-                Potion a = Potion.getPotionFromResourceLocation("regeneration");
-                Potion b = Potion.getPotionFromResourceLocation(AMPLIFIED_REGENERATION_NAME);
-                if (player.isPotionActive(a)) {
-                    // todo config to opt out of AMPLIFIED_REGENERATION and simply overwrite bonus if current has higher amplifier effect
-                    int cAmplifier = 0;
-                    PotionEffect ae = player.getActivePotionEffect(a);
-                    if (ae != null) {
-                        if (ae.getAmplifier() > 0) {
-                            cAmplifier = ae.getAmplifier();
-                            player.removeActivePotionEffect(a);
-                            player.addPotionEffect(new PotionEffect(b, 5, cAmplifier + 1));
-                        }
-                    }
-                } else {
-                    if (b != null) {
-                        if (!player.isPotionActive(b)) {
-                            player.addPotionEffect(new PotionEffect(Objects.requireNonNull(Potion.getPotionFromResourceLocation("regeneration")), 5, 1));
-                        }
-                    }
-                }
-            }
-        }
 
         // charisma
         IAttributeInstance armor = player.getEntityAttribute(SharedMonsterAttributes.ARMOR);
@@ -179,11 +156,6 @@ public class StatsLogic {
 
             armor.applyModifier(new AttributeModifier(ARMOR_UUID, nameIn, inst.getCharismaScore().getScorePoints() * 2, 0));
             armorToughness.applyModifier(new AttributeModifier(ARMOR_TOUGHNESS_UUID, nameIn, inst.getCharismaScore().getScorePoints() * 0.5D, 0));
-        }
-        if (inst.getCharismaBonusScore().getScorePoints() == 1) {
-            if (Potion.getPotionFromResourceLocation("resistance") != null) {
-                player.addPotionEffect(new PotionEffect(Potion.getPotionFromResourceLocation("resistance"), 5, 0));
-            }
         }
 
         // agility
@@ -214,6 +186,8 @@ public class StatsLogic {
                 flySpeed.applyModifier(new AttributeModifier(FLYING_SPEED_UUID, nameIn, agilityScore.getScorePoints() * 0.075D, 1));
             }*/
         }
+
+        givePotions(player);
 
         // perception, intelligence, and luck
         // todo make perception increase found loot
@@ -258,7 +232,6 @@ public class StatsLogic {
     }
 
     public void modifyGuns(ItemStack heldStack, EntityPlayer player, GunConfig cfg) {
-        float maxDura = cfg.getDurability(heldStack);
         Receiver[] receivers = cfg.getReceivers(heldStack);
 
         // 1
@@ -288,7 +261,7 @@ public class StatsLogic {
         modifiedReceiverTwo = null;
         if (receivers.length > 1) {
             if (inst.getIntelligenceScore().getScorePoints() >= 5) {
-                ItemGunBaseNT.setWear(heldStack, 1, ItemGunBaseNT.getWear(heldStack, 0) - maxDura);
+                ItemGunBaseNT.setWear(heldStack, 0, 0);
             }
 
             modifiedReceiverTwo = receivers[1];
@@ -312,6 +285,8 @@ public class StatsLogic {
     }
 
     private void processReceiver(Receiver recIn, float ogDmg, int ogDelay, ItemStack heldStackIn, EntityPlayer player) {
+        ItemGunBaseNT gun = (ItemGunBaseNT) heldStackIn.getItem();
+
         recIn.dmg(ogDmg + inst.getPerceptionScore().getScorePoints());
         //LOGGER.info(recIn.getInnateSpread(heldStackIn));
 
@@ -425,6 +400,36 @@ public class StatsLogic {
             originalDamageTwo = rIn.getBaseDamage(heldStack);
             originalDelayTwo = rIn.getDelayAfterFire(heldStack);
             originalProjectileAmountTwo = rIn.getRoundsPerCycle(heldStack);
+        }
+    }
+
+    public void givePotions(EntityPlayer player) {
+        if (inst.getEnduranceBonusScore().getScorePoints() == 1) {
+            String p = Tags.MOD_ID + ":" + AMPLIFIED_REGENERATION_NAME;
+            if (Potion.getPotionFromResourceLocation("regeneration") != null && Potion.getPotionFromResourceLocation(p) != null) {
+                Potion a = Potion.getPotionFromResourceLocation("regeneration");
+                Potion b = Potion.getPotionFromResourceLocation(p);
+                if (player.isPotionActive(a)) {
+                    // todo config to opt out of AMPLIFIED_REGENERATION and simply overwrite bonus if current has higher amplifier effect
+                    int cAmplifier;
+                    PotionEffect ae = player.getActivePotionEffect(a);
+                    if (ae != null) {
+                        cAmplifier = ae.getAmplifier();
+                        LOGGER.info(ae);
+                        LOGGER.info(cAmplifier);
+                        player.removePotionEffect(a);
+                        player.addPotionEffect(new PotionEffect(b, ae.getDuration(), cAmplifier + 1));
+                    }
+                } else if (!player.isPotionActive(b)) {
+                    player.addPotionEffect(new PotionEffect(b, potionTime, 1));
+                }
+            }
+        }
+
+        if (inst.getCharismaBonusScore().getScorePoints() == 1) {
+            if (Potion.getPotionFromResourceLocation("resistance") != null && !player.isPotionActive(Potion.getPotionFromResourceLocation("resistance"))) {
+                player.addPotionEffect(new PotionEffect(Potion.getPotionFromResourceLocation("resistance"), potionTime, 0));
+            }
         }
     }
 }
