@@ -27,12 +27,12 @@ public final class LSPECIALConfig {
 
     private static final String STATS = "1_special_stats";
     private static final String BOB = "2_bobbleheads_consumption";
-    private static final String GUNS = "3_guns_ammunition";
+    private static final String GUNS = "3_guns_ammo";
     private static final String POTIONS = "4_potions_effects";
     private static final String RECIPES = "5_recipes_ore_dictionary";
     private static final String MESSAGES = "6_gameplay_messages";
-    private static final String CLIENT = "7_client_interface";
-    private static final String COMMANDS = "8_commands_experimental";
+    private static final String CLIENT = "7_client";
+    private static final String COMMANDS = "8_commands";
     private static final String ADV = "9_advanced";
 
     public static boolean strength = true;
@@ -240,29 +240,23 @@ public final class LSPECIALConfig {
     }
 
     private static String categoryComment(String category) {
-        if (category.equals(ADV)) {
-            return "Arithmetic expressions support + - * / %, parentheses, variables, min/max/abs/sqrt/floor/ceil/round.";
-        }
-        if (category.equals(POTIONS)) {
-            return "Potion duration values are measured in ticks.";
-        }
-        if (category.equals(CLIENT)) {
-            return "Client-only GUI and keybind settings.";
-        }
-        if (category.equals(MESSAGES)) {
-            return "Gameplay feedback messages.";
-        }
-        if (category.equals(BOB)) {
-            return "Bobblehead item behavior and stat progression.";
-        }
-        if (category.equals(GUNS)) {
-            return "Gun mechanics, perks, ammunition and durability.";
-        }
-        if (category.equals(RECIPES)) {
-            return "Recipe toggles and ore dictionary configuration. Needs reload to set.";
-        }
-        if (category.equals(COMMANDS)) {
-            return "Needs reload to set.";
+        switch (category) {
+            case ADV:
+                return "Arithmetic expressions support + - * / %, parentheses, variables, min/max/abs/sqrt/floor/ceil/round.";
+            case POTIONS:
+                return "Potion duration values are measured in ticks.";
+            case CLIENT:
+                return "Client-only GUI and keybind settings.";
+            case MESSAGES:
+                return "Gameplay feedback messages.";
+            case BOB:
+                return "Bobblehead item behavior and stat progression.";
+            case GUNS:
+                return "Gun mechanics, perks, ammunition and durability.";
+            case RECIPES:
+                return "Recipe toggles and ore dictionary configuration. Needs reload to set.";
+            case COMMANDS:
+                return "Needs reload to set.";
         }
         return "LSPECIAL mod configuration.";
     }

@@ -4,7 +4,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.scoreboard.Score;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
@@ -14,7 +13,7 @@ import static com.levviata.lspecial.SPECIALScoreboard.inst;
 
 public class BobbleheadUse {
 
-    private static final String USES_TAG = "lspecialUses";
+    //private static final String USES_TAG = "lspecialUses";
 
     private int augLimit = 0;
 
@@ -161,13 +160,13 @@ public class BobbleheadUse {
 
         return true;
     }
-
+/*
     private int uses(ItemStack stack) {
         return stack.hasTagCompound()
                 ? stack.getTagCompound().getInteger(USES_TAG)
                 : 0;
     }
-/*
+
     private void consumeAccordingToMode(ItemStack stack, EntityPlayer player) {
         String mode = LSPECIALConfig.bobbleheadConsumption;
 

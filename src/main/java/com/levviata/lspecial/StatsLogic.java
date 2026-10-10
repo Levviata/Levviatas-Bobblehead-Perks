@@ -58,12 +58,10 @@ public class StatsLogic {
     private IMagazine originalMagazine;
 
     private int gunIndex = -1;
-    int potionTime = 115;
 
     private ItemStack loggedSednaGun = ItemStack.EMPTY;
     private ItemStack wearTrackedStack;
     private float previousObservedWear = Float.NaN;
-    private boolean loggedWearApiWarning;
     private static final List<UUID> uuids = new ArrayList<>();
 
     static List<Item> g = new ArrayList<>();
