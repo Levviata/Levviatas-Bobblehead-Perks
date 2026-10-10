@@ -67,7 +67,6 @@ public final class LSPECIALConfig {
     public static boolean toggleSpecial = true;
     public static boolean setSpeedCommand = true;
     public static boolean setFlySpeedCommand = true;
-    public static boolean nukeFrance = false;
 
     //public static String bobbleheadConsumption = "ON_USE";
     public static String limitMessage = "I have reached my limit, I can't consume more.";
@@ -186,7 +185,6 @@ public final class LSPECIALConfig {
         toggleSpecial = b(CLIENT, "toggleSpecial", true, "Enable toggleSpecial keybind");
         setSpeedCommand = b(COMMANDS, "setSpeedCommand", true, "Register /setspeed");
         setFlySpeedCommand = b(COMMANDS, "setFlySpeedCommand", true, "Register /setflyspeed");
-        nukeFrance = b(COMMANDS, "nukeFrance", false, "we all want to, dont we?");
 
         // Recipe switches
         String[] recipeNames = {"recipeStrength", "recipePerception", "recipeEndurance", "recipeCharisma", "recipeIntelligence", "recipeAgility", "recipeLuck"};
