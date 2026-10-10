@@ -60,7 +60,6 @@ public class LSPECIALMod {
     public void preInit(FMLPreInitializationEvent event) {
         MinecraftForge.EVENT_BUS.register(new BobbleheadUse());
         MinecraftForge.EVENT_BUS.register(new StatsLogic());
-        MinecraftForge.EVENT_BUS.register(new FlySpeedFix());
         MinecraftForge.EVENT_BUS.register(new SPECIALRenamer());
         MinecraftForge.EVENT_BUS.register(new GuiSPECIAL());
 
