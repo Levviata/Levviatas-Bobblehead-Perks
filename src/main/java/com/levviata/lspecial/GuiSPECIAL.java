@@ -69,21 +69,30 @@ public class GuiSPECIAL extends GuiScreen {
                 "Endurance represents toughness and resilience.");
 
         if (LSPECIALConfig.enduranceBonus) {
-            rows.add(new StatRow("Endurance Bonus", inst.getClientEnduranceBonus(), true, "Shows whether the Endurance perk bonus is active."));
+            rows.add(new StatRow("Endurance Bonus", inst.getClientEnduranceBonus(), true, "Gives you permanent regeneration 2. If you already have regeneration, increase by one it's amplifier (ex: regen 1 to 2)"));
         }
 
-        addStat("Charisma", inst.getClientCharisma(), LSPECIALConfig.charisma, "Charisma represents social influence and related bonuses.");
+        addStat("Charisma", inst.getClientCharisma(), LSPECIALConfig.charisma, "Increases armor and armor toughness.");
 
         if (LSPECIALConfig.charismaBonus) {
-            rows.add(new StatRow("Charisma Bonus", inst.getClientCharismaBonus(), true, "Shows whether the Charisma perk bonus is active."));
+            rows.add(new StatRow("Charisma Bonus", inst.getClientCharismaBonus(), true, "Gives you permanent resistance effect."));
         }
 
-        addStat("Intelligence", inst.getClientIntelligence(), LSPECIALConfig.intelligence, "Intelligence represents mental acuity and related bonuses.");
-        addStat("Agility", inst.getClientAgility(), LSPECIALConfig.agility, "Agility represents speed and dexterity.");
-        addStat("Luck", inst.getClientLuck(), LSPECIALConfig.luck, "Luck represents fortune and influences luck-based effects.");
+        if (LSPECIALConfig.gunWearMode.equals("PERCENT_REDUCTION")) {
+            addStat("Intelligence", inst.getClientIntelligence(), LSPECIALConfig.intelligence, "The flesh obeys the will. Increases gun fire rate, reduces gun wear by a percentage, and gives infinite item durability");
+        }
+        if (LSPECIALConfig.gunWearMode.equals("INFINITE_AT_INTELLIGENCE_5")) {
+            addStat("Intelligence", inst.getClientIntelligence(), LSPECIALConfig.intelligence, "The flesh obeys the will. Increases gun fire rate, infinite gun durability, and gives infinite item durability");
+        }
+        if (LSPECIALConfig.gunWearMode.equals("FORMULA")) {
+            addStat("Intelligence", inst.getClientIntelligence(), LSPECIALConfig.intelligence, "The flesh obeys the will. Increases gun fire rate, reduces gun wear, and gives infinite item durability.");
+        }
+
+        addStat("Agility", inst.getClientAgility(), LSPECIALConfig.agility, "Gives speed, can be configured with command /setspeed");
+        addStat("Luck", inst.getClientLuck(), LSPECIALConfig.luck, "Gives a chance to refund a magazine on gun reload.");
 
         if (LSPECIALConfig.statLimit) {
-            rows.add(new StatRow("Stat Limit", inst.getClientLimit(), true, "The current maximum value allowed for each SPECIAL stat."));
+            rows.add(new StatRow("Stat Limit", inst.getClientLimit(), true, "The current maximum for each SPECIAL stat."));
         }
     }
 
@@ -252,7 +261,7 @@ public class GuiSPECIAL extends GuiScreen {
         // randomized footer
         drawString(fontRenderer, "LSPECIAL  /  " + footerMessage, panelLeft + 22, footerY + 2, AMBER_MUTED);
 
-        String hint = "PRESS KEY " + toggleSpecial.getKeyCode() + " TO CLOSE";
+        String hint = "PRESS KEY " + toggleSpecial.getDisplayName() + " TO CLOSE";
 
         drawString(fontRenderer, hint, panelLeft + panelWidth - fontRenderer.getStringWidth(hint) - 22, footerY + 2, AMBER);
     }
