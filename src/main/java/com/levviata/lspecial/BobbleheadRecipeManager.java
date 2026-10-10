@@ -27,8 +27,8 @@ public class BobbleheadRecipeManager {
 
     public static void registerOreDict() {
         registerConfiguredEntries(
-                LSPECIALConfig.oreAnyBobblehead,
-                LSPECIALConfig.oreAnyBobbleheadEntries
+                LSPECIALConfig.oreBobblehead,
+                LSPECIALConfig.oreBobbleheadEntries
         );
         registerConfiguredEntries(
                 LSPECIALConfig.oreAppleLead,
@@ -227,7 +227,7 @@ public class BobbleheadRecipeManager {
     private String getOreDictionaryName(String token) {
         switch (token) {
             case "anyBobblehead":
-                return LSPECIALConfig.oreAnyBobblehead;
+                return LSPECIALConfig.oreBobblehead;
             case "appleLead":
                 return LSPECIALConfig.oreAppleLead;
             case "ammo":
