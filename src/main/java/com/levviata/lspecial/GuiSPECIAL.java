@@ -61,12 +61,9 @@ public class GuiSPECIAL extends GuiScreen {
     private void rebuildRows() {
         rows.clear();
 
-        addStat("Strength", inst.getClientStrength(), LSPECIALConfig.strength,
-                "Strength represents physical power and contributes to melee damage.");
-        addStat("Perception", inst.getClientPerception(), LSPECIALConfig.perception,
-                "Perception affects awareness and related bonuses.");
-        addStat("Endurance", inst.getClientEndurance(), LSPECIALConfig.endurance,
-                "Endurance represents toughness and resilience.");
+        addStat("Strength", inst.getClientStrength(), LSPECIALConfig.strength, "Gives on-hit attack damage, currently doesn't display on the held item.");
+        addStat("Perception", inst.getClientPerception(), LSPECIALConfig.perception, "Increases gun damage.");
+        addStat("Endurance", inst.getClientEndurance(), LSPECIALConfig.endurance, "Gives max health, one heart per level.");
 
         if (LSPECIALConfig.enduranceBonus) {
             rows.add(new StatRow("Endurance Bonus", inst.getClientEnduranceBonus(), true, "Gives you permanent regeneration 2. If you already have regeneration, increase by one it's amplifier (ex: regen 1 to 2)"));
@@ -78,15 +75,18 @@ public class GuiSPECIAL extends GuiScreen {
             rows.add(new StatRow("Charisma Bonus", inst.getClientCharismaBonus(), true, "Gives you permanent resistance effect."));
         }
 
+        String m1 = "";
         if (LSPECIALConfig.gunWearMode.equals("PERCENT_REDUCTION")) {
-            addStat("Intelligence", inst.getClientIntelligence(), LSPECIALConfig.intelligence, "The flesh obeys the will. Increases gun fire rate, reduces gun wear by a percentage, and gives infinite item durability");
+            m1 = "reduces gun wear by a percentage";
         }
         if (LSPECIALConfig.gunWearMode.equals("INFINITE_AT_INTELLIGENCE_5")) {
-            addStat("Intelligence", inst.getClientIntelligence(), LSPECIALConfig.intelligence, "The flesh obeys the will. Increases gun fire rate, infinite gun durability, and gives infinite item durability");
+            m1 = "infinite gun durability";
         }
         if (LSPECIALConfig.gunWearMode.equals("FORMULA")) {
-            addStat("Intelligence", inst.getClientIntelligence(), LSPECIALConfig.intelligence, "The flesh obeys the will. Increases gun fire rate, reduces gun wear, and gives infinite item durability.");
+            m1 = "reduces gun wear";
         }
+        String m2 = "The flesh obeys the will. Increases gun fire rate, " + m1 + " and gives infinite item durability. At level 5, makes the Pepperbox shot 6 rounds at once. At level 10, makes all revolvers penetrate more than one entity and x3 headshot damage";
+        addStat("Intelligence", inst.getClientIntelligence(), LSPECIALConfig.intelligence, m2);
 
         addStat("Agility", inst.getClientAgility(), LSPECIALConfig.agility, "Gives speed, can be configured with command /setspeed");
         addStat("Luck", inst.getClientLuck(), LSPECIALConfig.luck, "Gives a chance to refund a magazine on gun reload.");
@@ -189,11 +189,11 @@ public class GuiSPECIAL extends GuiScreen {
 
             String value = Integer.toString(row.value);
             drawString(fontRenderer, value, listLeft + listWidth - 42, y + 4, color);
-
+/*
             int arrowX = listLeft + listWidth - 18;
             drawRect(arrowX, y + 4, arrowX + 11, y + 15, AMBER_MUTED);
             drawRect(arrowX + 1, y + 5, arrowX + 10, y + 14, PANEL);
-            drawString(fontRenderer, ">", arrowX + 2, y + 3, color);
+            drawString(fontRenderer, ">", arrowX + 2, y + 3, color);*/
         }
 
         int dividerX = panelLeft + panelWidth / 2 - 2;
@@ -261,7 +261,7 @@ public class GuiSPECIAL extends GuiScreen {
         // randomized footer
         drawString(fontRenderer, "LSPECIAL  /  " + footerMessage, panelLeft + 22, footerY + 2, AMBER_MUTED);
 
-        String hint = "PRESS KEY " + toggleSpecial.getDisplayName() + " TO CLOSE";
+        String hint = "PRESS ESC TO CLOSE";
 
         drawString(fontRenderer, hint, panelLeft + panelWidth - fontRenderer.getStringWidth(hint) - 22, footerY + 2, AMBER);
     }
