@@ -25,9 +25,7 @@ public final class LSPECIALExpression {
 
             parser.skipWhitespace();
 
-            return parser.index == parser.source.length() && Double.isFinite(result)
-                    ? result
-                    : fallback;
+            return parser.index == parser.source.length() && Double.isFinite(result) ? result : fallback;
         } catch (RuntimeException exception) {
             return fallback;
         }
