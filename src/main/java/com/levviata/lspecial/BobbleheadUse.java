@@ -40,9 +40,9 @@ public class BobbleheadUse {
         inst.startBoards();
         inst.startScores(player);
 
-        String mode = LSPECIALConfig.bobbleheadConsumption;
+        //String mode = LSPECIALConfig.bobbleheadConsumption;
 
-        if (!"ON_USE".equals(mode) && stack.getCount() > 1) {
+        if (/*!"ON_USE".equals(mode) &&*/ stack.getCount() > 1) {
             ItemStack individual = stack.splitStack(1);
 
             if (!player.inventory.addItemStackToInventory(individual)) {
@@ -96,9 +96,9 @@ public class BobbleheadUse {
                         && LSPECIALConfig.statLimit
                         && inst.getLimitScore().getScorePoints() < Integer.MAX_VALUE) {
 
-                    if ("NEVER".equals(mode) && uses(stack) >= 1) {
+                    /*if ("NEVER".equals(mode) && uses(stack) >= 1) {
                         break;
-                    }
+                    }*/
 
                     inst.getLimitScore().setScorePoints(
                             inst.getLimitScore().getScorePoints() + 1
@@ -106,7 +106,8 @@ public class BobbleheadUse {
 
                     showAugLimit(player);
                     granted = true;
-                    consumeAccordingToMode(stack, player);
+                    stack.shrink(1);
+                    //consumeAccordingToMode(stack, player);
                 }
                 break;
         }
@@ -127,17 +128,14 @@ public class BobbleheadUse {
             return false;
         }
 
-        if ("NEVER".equals(LSPECIALConfig.bobbleheadConsumption) && uses(stack) >= 1) {
+        /*if ("NEVER".equals(LSPECIALConfig.bobbleheadConsumption) && uses(stack) >= 1) {
             return false;
-        }
+        }*/
 
         int gain = LSPECIALConfig.statsPerBobblehead;
 
         if (LSPECIALConfig.statLimit) {
-            int remaining = Math.max(
-                    0,
-                    inst.getLimitScore().getScorePoints() - score.getScorePoints()
-            );
+            int remaining = Math.max(0, inst.getLimitScore().getScorePoints() - score.getScorePoints());
             gain = Math.min(gain, remaining);
         }
 
@@ -147,7 +145,8 @@ public class BobbleheadUse {
         }
 
         score.setScorePoints(score.getScorePoints() + gain);
-        consumeAccordingToMode(stack, player);
+        stack.shrink(1);
+        //consumeAccordingToMode(stack, player);
         return true;
     }
 
@@ -168,7 +167,7 @@ public class BobbleheadUse {
                 ? stack.getTagCompound().getInteger(USES_TAG)
                 : 0;
     }
-
+/*
     private void consumeAccordingToMode(ItemStack stack, EntityPlayer player) {
         String mode = LSPECIALConfig.bobbleheadConsumption;
 
@@ -188,7 +187,7 @@ public class BobbleheadUse {
         if ("EVERY_X_USES".equals(mode) && uses >= LSPECIALConfig.bobbleheadUsesPerConsumption) {
             stack.shrink(1);
         }
-    }
+    }*/
 
     private void message(EntityPlayer player, String text) {
         if (LSPECIALConfig.hotbarMessages && text != null && !text.isEmpty()) {
