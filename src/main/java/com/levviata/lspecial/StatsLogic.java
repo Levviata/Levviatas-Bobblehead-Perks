@@ -25,7 +25,6 @@ import static com.levviata.lspecial.command.CommandSetSpeed.getPlayerSpeed;
 import static com.levviata.lspecial.potion.PotionAmplifiedRegeneration.AMPLIFIED_REGENERATION_NAME;
 
 public class StatsLogic {
-    // todo add uuid getter helper from attribute modifier
     //vanilla uuids
     private static final UUID ATTACK_DAMAGE_UUID = UUID.fromString("CB3F55D3-645C-4F38-A497-9C13A33DB5CF");
     //private static final UUID ATTACK_SPEED_UUID = UUID.fromString("FA233E1C-4180-4865-B01B-BCCE9785ACA3");
@@ -173,7 +172,7 @@ public class StatsLogic {
        // LOGGER.info(player.capabilities.getFlySpeed());
 
         // perception, intelligence, and luck
-        // todo make perception increase found loot
+        // todo make perception increase found loot, make luck reduce armor durability lose on chance
 
         if (inst.getIntelligenceScore().getScorePoints() >= 5) {
             if (heldStack.isItemStackDamageable()) {
