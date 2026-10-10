@@ -25,6 +25,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.input.Keyboard;
 
+import static com.levviata.lspecial.SPECIALScoreboard.inst;
 import static com.levviata.lspecial.potion.PotionAmplifiedRegeneration.AMPLIFIED_REGENERATION_NAME;
 
 @Mod(modid = Tags.MOD_ID, name = Tags.MOD_NAME, version = Tags.VERSION)
@@ -86,10 +87,10 @@ public class LSPECIALMod {
     }
 
     public static void syncStats(EntityPlayerMP player) {
-        NETWORK.sendTo(new SyncSPECIALStatsPacket(SPECIALScoreboard.inst.getStrengthScore().getScorePoints(), SPECIALScoreboard.inst.getPerceptionScore().getScorePoints(), SPECIALScoreboard.inst.getEnduranceScore().getScorePoints(),
-                SPECIALScoreboard.inst.getEnduranceBonusScore().getScorePoints(), SPECIALScoreboard.inst.getCharismaScore().getScorePoints(), SPECIALScoreboard.inst.getCharismaBonusScore().getScorePoints(),
-                SPECIALScoreboard.inst.getIntelligenceScore().getScorePoints(), SPECIALScoreboard.inst.getAgilityScore().getScorePoints(), SPECIALScoreboard.inst.getLuckScore().getScorePoints(),
-                SPECIALScoreboard.inst.getLimitScore().getScorePoints()), player);
+        NETWORK.sendTo(new SyncSPECIALStatsPacket(inst.getStrengthScore().getScorePoints(), inst.getPerceptionScore().getScorePoints(), inst.getEnduranceScore().getScorePoints(),
+                inst.getEnduranceBonusScore().getScorePoints(), inst.getCharismaScore().getScorePoints(), inst.getCharismaBonusScore().getScorePoints(),
+                inst.getIntelligenceScore().getScorePoints(), inst.getAgilityScore().getScorePoints(), inst.getLuckScore().getScorePoints(),
+                inst.getLimitScore().getScorePoints()), player);
     }
 /*
 
