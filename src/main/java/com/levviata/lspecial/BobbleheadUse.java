@@ -37,16 +37,6 @@ public class BobbleheadUse {
         inst.startBoards();
         inst.startScores(player);
 
-        if (stack.getCount() > 1) {
-            ItemStack individual = stack.splitStack(1);
-
-            if (!player.inventory.addItemStackToInventory(individual)) {
-                player.dropItem(individual, false);
-            }
-
-            stack = individual;
-        }
-
         int metadata = stack.getMetadata();
         boolean granted = false;
 
@@ -139,7 +129,6 @@ public class BobbleheadUse {
         if (bonusEnabled && score.getScorePoints() >= 4 && bonus.getScorePoints() != 1) {
             bonus.setScorePoints(1);
         }
-
         return true;
     }
 
