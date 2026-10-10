@@ -13,7 +13,8 @@ public class LSplashText {
 
     private final String[] CUSTOM_SPLASHES = {
             "You are SPECIAL!",
-            "Vit-o-Matic Vigor Tester"
+            "Vit-o-Matic Vigor Tester",
+            "The flesh obeys the will"
     };
 
     @SubscribeEvent
