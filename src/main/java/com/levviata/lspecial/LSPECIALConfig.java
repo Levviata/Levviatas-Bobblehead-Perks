@@ -267,26 +267,30 @@ public final class LSPECIALConfig {
         return "LSPECIAL mod configuration.";
     }
 
+    private static String sideComment(String category, String comment) {
+        return (CLIENT.equals(category) ? "[Client-side] " : "[Server-side] ") + comment;
+    }
+
     private static boolean b(String category, String key, boolean defaultValue, String comment) {
-        return config.get(category, key, defaultValue, comment).getBoolean(defaultValue);
+        return config.get(category, key, defaultValue, sideComment(category, comment)).getBoolean(defaultValue);
     }
 
     private static int i(String category, String key, int defaultValue, int min, int max, String comment) {
-        return config.get(category, key, defaultValue, comment, min, max).getInt(defaultValue);
+        return config.get(category, key, defaultValue, sideComment(category, comment), min, max).getInt(defaultValue);
     }
 
-    private static double d(String category, String key, double defaultValue,
-                            double min, double max, String comment) {
-        return config.get(category, key, defaultValue, comment, min, max).getDouble(defaultValue);
+    private static double d(String category, String key, double defaultValue, double min, double max, String comment) {
+        return config.get(category, key, defaultValue, sideComment(category, comment), min, max).getDouble(defaultValue);
     }
 
     private static String s(String category, String key, String defaultValue, String comment) {
-        return config.get(category, key, defaultValue, comment).getString();
+        return config.get(category, key, defaultValue, sideComment(category, comment)).getString();
     }
 
     @SubscribeEvent
     public static void changed(ConfigChangedEvent.OnConfigChangedEvent event) {
-        if (Tags.MOD_ID.equals(event.getModID())) {
+        if (Tags.MOD_ID.equals(event.getModID()) && config != null) {
+            config.save();
             load();
         }
     }
@@ -295,7 +299,7 @@ public final class LSPECIALConfig {
     public static GuiScreen gui(GuiScreen parent) {
         List<IConfigElement> elements = new ArrayList<>();
 
-        for (String categoryName : Arrays.asList(STATS, BOB, GUNS, POTIONS, RECIPES, MESSAGES, CLIENT, COMMANDS, ADV)) {
+        for (String categoryName : Arrays.asList(STATS, BOB, GUNS, POTIONS, MESSAGES, CLIENT, ADV)) {
             ConfigCategory category = config.getCategory(categoryName);
             elements.add(new ConfigElement(category));
         }
