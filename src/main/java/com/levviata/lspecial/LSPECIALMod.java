@@ -9,9 +9,7 @@ import com.levviata.lspecial.proxy.CommonProxy;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.potion.Potion;
-import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
@@ -28,11 +26,8 @@ import org.lwjgl.input.Keyboard;
 import static com.levviata.lspecial.SPECIALScoreboard.inst;
 import static com.levviata.lspecial.potion.PotionAmplifiedRegeneration.AMPLIFIED_REGENERATION_NAME;
 
-@Mod(modid = Tags.MOD_ID, name = Tags.MOD_NAME, version = Tags.VERSION)
+@Mod(modid = Tags.MOD_ID, name = Tags.MOD_NAME, version = Tags.VERSION, guiFactory = "com.levviata.lspecial.LSPECIALGuiFactory")
 public class LSPECIALMod {
-
-    // todo: recipes to reduce grinding
-
     public static final Logger LOGGER = LogManager.getLogger(Tags.MOD_NAME);
 
     public static final SimpleNetworkWrapper NETWORK = NetworkRegistry.INSTANCE.newSimpleChannel(Tags.MOD_ID);
@@ -58,6 +53,7 @@ public class LSPECIALMod {
      */
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
+        LSPECIALConfig.init(event.getSuggestedConfigurationFile());
         MinecraftForge.EVENT_BUS.register(new BobbleheadUse());
         MinecraftForge.EVENT_BUS.register(new StatsLogic());
         MinecraftForge.EVENT_BUS.register(new SPECIALRenamer());
@@ -82,8 +78,8 @@ public class LSPECIALMod {
 
     @Mod.EventHandler
     public void serverStarting(FMLServerStartingEvent event) {
-        event.registerServerCommand(new CommandSetSpeed());
-        event.registerServerCommand(new CommandSetFlySpeed());
+        if (LSPECIALConfig.setSpeedCommand) event.registerServerCommand(new CommandSetSpeed());
+        if (LSPECIALConfig.setFlySpeedCommand) event.registerServerCommand(new CommandSetFlySpeed());
     }
 
     public static void syncStats(EntityPlayerMP player) {

@@ -1,20 +1,19 @@
-
 package com.levviata.lspecial;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import net.minecraft.init.Items;
-import net.minecraft.init.PotionTypes;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.potion.PotionType;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.NonNullList;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.crafting.IngredientNBT;
 import net.minecraftforge.event.RegistryEvent;
-import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import net.minecraftforge.oredict.OreDictionary;
@@ -27,18 +26,60 @@ public class BobbleheadRecipeManager {
     private static boolean oreDictRegistered = false;
 
     public static void registerOreDict() {
-        registerRange("anyBobblehead", "bobblehead", 8, 28);
-        registerRange("appleLead", "apple_lead", 0, 2);
-        registerRange("ammo", "ammo_standard", 0, 94);
+        registerConfiguredEntries(
+                LSPECIALConfig.oreBobblehead,
+                LSPECIALConfig.oreBobbleheadEntries
+        );
+        registerConfiguredEntries(
+                LSPECIALConfig.oreAppleLead,
+                LSPECIALConfig.oreAppleLeadEntries
+        );
+        registerConfiguredEntries(
+                LSPECIALConfig.oreAmmo,
+                LSPECIALConfig.oreAmmoEntries
+        );
+        registerConfiguredEntries(
+                LSPECIALConfig.oreLuckAccessory,
+                LSPECIALConfig.oreLuckAccessoryEntries
+        );
+        registerConfiguredEntries(
+                LSPECIALConfig.oreLuckyGem,
+                LSPECIALConfig.oreLuckyGemEntries
+        );
+    }
 
-        registerSingle("luckAccessory", "bandaid", 0);
-        registerSingle("luckAccessory", "serum", 0);
-        registerSingle("luckAccessory", "spider_milk", 0);
-        registerSingle("luckAccessory", "heart_piece", 0);
-        registerSingle("luckAccessory", "wd40", 0);
+    private static void registerConfiguredEntries(String oreName, String entries) {
+        for (String rawEntry : entries.split(",")) {
+            String token = rawEntry.trim();
 
-        OreDictionary.registerOre("luckyGem", new ItemStack(Items.EMERALD));
-        OreDictionary.registerOre("luckyGem", new ItemStack(Items.DIAMOND));
+            if (token.isEmpty()) {
+                continue;
+            }
+
+            String[] parts = token.split(":");
+            if (parts.length != 3) {
+                throw new IllegalArgumentException("Ore entry must be namespace:item:meta or namespace:item:start-end: " + token);
+            }
+
+            Item item = getItem(parts[0], parts[1]);
+            String metadata = parts[2];
+
+            if (metadata.contains("-")) {
+                String[] range = metadata.split("-");
+                int min = Integer.parseInt(range[0]);
+                int max = Integer.parseInt(range[1]);
+
+                if (max < min || max - min > 4096) {
+                    throw new IllegalArgumentException("Invalid metadata range: " + token);
+                }
+
+                for (int meta = min; meta <= max; meta++) {
+                    OreDictionary.registerOre(oreName, new ItemStack(item, 1, meta));
+                }
+            } else {
+                OreDictionary.registerOre(oreName, new ItemStack(item, 1, Integer.parseInt(metadata)));
+            }
+        }
     }
 
     private static void registerRange(String oreName, String itemName, int min, int max) {
@@ -50,7 +91,10 @@ public class BobbleheadRecipeManager {
     }
 
     private static void registerSingle(String oreName, String itemName, int meta) {
-        OreDictionary.registerOre(oreName, new ItemStack(getItem(HBM, itemName), 1, meta));
+        OreDictionary.registerOre(
+                oreName,
+                new ItemStack(getItem(HBM, itemName), 1, meta)
+        );
     }
 
     private static Item getItem(String namespace, String name) {
@@ -64,16 +108,17 @@ public class BobbleheadRecipeManager {
         return item;
     }
 
-    private Ingredient item(String namespace, String name, int meta) {
-        return Ingredient.fromStacks(new ItemStack(getItem(namespace, name), 1, meta));
+    private Ingredient item(String namespace, String name, int metadata) {
+        ItemStack stack = new ItemStack(getItem(namespace, name), 1, metadata);
+        return Ingredient.fromStacks(stack);
     }
 
     private Ingredient hbm(String name) {
         return item(HBM, name, 0);
     }
 
-    private Ingredient hbmMeta(String name, int meta) {
-        return item(HBM, name, meta);
+    private Ingredient hbmMeta(String name, int metadata) {
+        return item(HBM, name, metadata);
     }
 
     private Ingredient ore(String name) {
@@ -90,87 +135,109 @@ public class BobbleheadRecipeManager {
         ItemStack[] stacks = new ItemStack[types.length];
 
         for (int i = 0; i < types.length; i++) {
-            stacks[i] = net.minecraft.potion.PotionUtils.addPotionToItemStack(new ItemStack(Items.POTIONITEM), types[i]);
+            ItemStack potionStack = new ItemStack(Items.POTIONITEM);
+            stacks[i] = net.minecraft.potion.PotionUtils.addPotionToItemStack(potionStack, types[i]);
         }
 
         return IngredientNBT.fromStacks(stacks);
     }
 
-    private void addRecipe(RegistryEvent.Register<net.minecraft.item.crafting.IRecipe> event, String name, int outputMeta, Ingredient... ingredients) {
+    private void addRecipe(RegistryEvent.Register<IRecipe> event, String name, int outputMetadata, Ingredient... ingredients) {
         NonNullList<Ingredient> input = NonNullList.create();
         input.addAll(Arrays.asList(ingredients));
 
-        ItemStack output = new ItemStack(getItem(HBM, "bobblehead"), 1, outputMeta);
+        ItemStack output = new ItemStack(getItem(HBM, "bobblehead"), 1, outputMetadata);
 
-        ShapelessOreRecipe recipe = new ShapelessOreRecipe(new ResourceLocation(Tags.MOD_ID, name), input, output);
+        ResourceLocation recipeId = new ResourceLocation(Tags.MOD_ID, name);
+        ShapelessOreRecipe recipe = new ShapelessOreRecipe(recipeId, input, output);
+        recipe.setRegistryName(recipeId);
 
-        recipe.setRegistryName(new ResourceLocation(Tags.MOD_ID, name));
         event.getRegistry().register(recipe);
     }
 
-
     @SubscribeEvent
-    public void registerRecipes(RegistryEvent.Register<net.minecraft.item.crafting.IRecipe> event) {
-        // item registration has progressed after preInit
+    public void registerRecipes(RegistryEvent.Register<IRecipe> event) {
+        // Item registration has progressed beyond preInit by this point.
         if (!oreDictRegistered) {
             registerOreDict();
             oreDictRegistered = true;
         }
 
-        Ingredient bobblehead = ore("anyBobblehead");
+        for (int i = 0; i < 7; i++) {
+            if (!LSPECIALConfig.recipeEnabled[i]) {
+                continue;
+            }
 
-        addRecipe(event, "bobblehead_1", 1,
-                bobblehead,
-                hbm("schnitzel_vegan"),
-                ore("appleLead"),
-                hbm("ingot_u235")
-        );
-
-        addRecipe(event, "bobblehead_2", 2,
-                bobblehead,
-                hbmMeta("weapon_mod_special", 1),
-                hbmMeta("weapon_mod_special", 6),
-                ore("ammo")
-        );
-
-        addRecipe(event, "bobblehead_3", 3,
-                bobblehead,
-                hbm("med_bag"),
-                hbm("crackpipe"),
-                potion(PotionTypes.HEALING, PotionTypes.STRONG_HEALING)
-        );
-
-        addRecipe(event, "bobblehead_4", 4,
-                bobblehead,
-                hbm("cobalt_helmet"),
-                hbm("steel_helmet"),
-                hbm("titanium_helmet")
-        );
-
-        addRecipe(event, "bobblehead_5", 5,
-                bobblehead,
-                hbmMeta("part_mechanism", 34),
-                hbmMeta("circuit", 9),
-                hbm("gun_kit_2")
-        );
-
-        addRecipe(event, "bobblehead_6", 6,
-                bobblehead,
-                hbm("cotton_candy"),
-                potion(
-                        PotionTypes.SWIFTNESS,
-                        PotionTypes.LONG_SWIFTNESS,
-                        PotionTypes.STRONG_SWIFTNESS
-                ),
-                Ingredient.fromStacks(new ItemStack(Items.SUGAR))
-        );
-
-        addRecipe(event, "bobblehead_7", 7,
-                bobblehead,
-                ore("ammo"),
-                ore("luckyGem"),
-                ore("luckAccessory")
-        );
+            try {
+                addConfiguredRecipe(event, i + 1, LSPECIALConfig.recipeIngredients[i]);
+            } catch (RuntimeException exception) {
+                LSPECIALMod.LOGGER.error("Could not register configurable bobblehead recipe {}. " + "Keeping it disabled for this launch: {}", i + 1, exception.getMessage());
+            }
+        }
     }
 
+    private void addConfiguredRecipe(RegistryEvent.Register<IRecipe> event, int index, String specification) {
+        List<Ingredient> ingredients = new ArrayList<>();
+
+        for (String rawEntry : specification.split(",")) {
+            String token = rawEntry.trim();
+
+            if (token.isEmpty()) {
+                continue;
+            }
+
+            if (token.startsWith("potion:")) {
+                String[] names = token.substring("potion:".length()).split("\\|");
+                PotionType[] types = new PotionType[names.length];
+
+                for (int i = 0; i < names.length; i++) {
+                    String name = names[i].trim();
+                    ResourceLocation id = name.contains(":") ? new ResourceLocation(name) : new ResourceLocation("minecraft", name);
+
+                    types[i] = ForgeRegistries.POTION_TYPES.getValue(id);
+
+                    if (types[i] == null) {
+                        throw new IllegalArgumentException("Unknown potion type " + id);
+                    }
+                }
+
+                ingredients.add(potion(types));
+            } else if (!token.contains(":")) {
+                ingredients.add(ore(getOreDictionaryName(token)));
+            } else {
+                String[] parts = token.split(":");
+
+                if (parts.length < 2 || parts.length > 3) {
+                    throw new IllegalArgumentException("Expected namespace:item[:metadata], got " + token);
+                }
+
+                int metadata = parts.length == 3 ? Integer.parseInt(parts[2]) : 0;
+
+                ingredients.add(item(parts[0], parts[1], metadata));
+            }
+        }
+
+        if (ingredients.isEmpty()) {
+            throw new IllegalArgumentException("No ingredients specified");
+        }
+
+        addRecipe(event, "bobblehead_" + index, index, ingredients.toArray(new Ingredient[0]));
+    }
+
+    private String getOreDictionaryName(String token) {
+        switch (token) {
+            case "anyBobblehead":
+                return LSPECIALConfig.oreBobblehead;
+            case "appleLead":
+                return LSPECIALConfig.oreAppleLead;
+            case "ammo":
+                return LSPECIALConfig.oreAmmo;
+            case "luckAccessory":
+                return LSPECIALConfig.oreLuckAccessory;
+            case "luckyGem":
+                return LSPECIALConfig.oreLuckyGem;
+            default:
+                return token;
+        }
+    }
 }

@@ -9,99 +9,166 @@ import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-import java.util.Objects;
-
 import static com.levviata.lspecial.SPECIALScoreboard.inst;
 
 public class BobbleheadUse {
-    private static final String LIMIT_MESSAGE = "I have reached my limit, I can't consume more.";
+
     private int augLimit = 0;
 
     @SubscribeEvent
     public void use(PlayerInteractEvent.RightClickItem event) {
         EntityPlayer player = event.getEntityPlayer();
 
-        if (player.world.isRemote) { // server sided
+        if (player.world.isRemote) {
             return;
         }
 
-        ItemStack bob = new ItemStack(Objects.requireNonNull(Item.getByNameOrId("hbm:bobblehead")));
+        Item bobblehead = Item.getByNameOrId("hbm:bobblehead");
+        if (bobblehead == null) {
+            return;
+        }
 
         ItemStack stack = event.getItemStack();
+        if (stack.isEmpty() || stack.getItem() != bobblehead || !player.isSneaking()) {
+            return;
+        }
 
         inst.scoreboard = player.getEntityWorld().getScoreboard();
-
-        // WARNING if the scores or scoreboards don't start, the mod is useless
         inst.startBoards();
         inst.startScores(player);
 
-        //LOGGER.error("Couldn't start the scoreboards, the mod is useless!"); how do i check this
+        if (stack.getCount() > 1) {
+            ItemStack individual = stack.splitStack(1);
 
-        // when a hbm:bobblehead is crouch right-clicked, I remove the item and set a flag as true
-        if (stack.getItem().equals(bob.getItem()) && player.isSneaking()) {
-            // these if statement are retarded but dont bark at it for me ok?
-            if (stack.getItemDamage() == 1) {
-                processBob(inst.getStrengthScore(), stack, player);
+            if (!player.inventory.addItemStackToInventory(individual)) {
+                player.dropItem(individual, false);
             }
-            if (stack.getItemDamage() == 2) {
-                processBob(inst.getPerceptionScore(), stack, player);
-            }
-            if (stack.getItemDamage() == 3) {
-                processBobAndLesserPerk(inst.getEnduranceScore(), inst.getEnduranceBonusScore(), stack, player);
-            }
-            if (stack.getItemDamage() == 4) {
-                processBobAndLesserPerk(inst.getCharismaScore(), inst.getCharismaBonusScore(), stack, player);
-            }
-            if (stack.getItemDamage() == 5) {
-                processBob(inst.getIntelligenceScore(), stack, player);
-            }
-            if (stack.getItemDamage() == 6) {
-                processBob(inst.getAgilityScore(), stack, player);
-            }
-            if (stack.getItemDamage() == 7) {
-                processBob(inst.getLuckScore(), stack, player);
-            }
-            if (stack.getItemDamage() > 7) {
-                stack.setCount(stack.getCount() - 1);
-                inst.getLimitScore().setScorePoints(inst.getLimitScore().getScorePoints() + 1);
 
-                augLimit++; // doesnt save or sync, maybe add it as a separate synced value?
-                if (augLimit >= 20) {
-                    player.sendStatusMessage(new TextComponentString("Limit++"), true);
-                } else if (augLimit >= 10) {
-                    player.sendStatusMessage(new TextComponentString("SPECIAL limit++"), true);
-                } else if (augLimit >= 5) {
-                    player.sendStatusMessage(new TextComponentString("Augmented SPECIAL limit by one"), true);
-                } else {
-                    player.sendStatusMessage(new TextComponentString("Augmented my SPECIAL limit by one, cool"), true);
+            stack = individual;
+        }
+
+        int metadata = stack.getMetadata();
+        boolean granted = false;
+
+        switch (metadata) {
+            case 1:
+                granted = grant(inst.getStrengthScore(), LSPECIALConfig.strength, stack, player);
+                break;
+            case 2:
+                granted = grant(inst.getPerceptionScore(), LSPECIALConfig.perception, stack, player);
+                break;
+            case 3:
+                granted = grantWithPerk(
+                        inst.getEnduranceScore(),
+                        inst.getEnduranceBonusScore(),
+                        LSPECIALConfig.endurance,
+                        LSPECIALConfig.enduranceBonus,
+                        stack,
+                        player
+                );
+                break;
+            case 4:
+                granted = grantWithPerk(
+                        inst.getCharismaScore(),
+                        inst.getCharismaBonusScore(),
+                        LSPECIALConfig.charisma,
+                        LSPECIALConfig.charismaBonus,
+                        stack,
+                        player
+                );
+                break;
+            case 5:
+                granted = grant(inst.getIntelligenceScore(), LSPECIALConfig.intelligence, stack, player);
+                break;
+            case 6:
+                granted = grant(inst.getAgilityScore(), LSPECIALConfig.agility, stack, player);
+                break;
+            case 7:
+                granted = grant(inst.getLuckScore(), LSPECIALConfig.luck, stack, player);
+                break;
+            default:
+                if (metadata > 7 && LSPECIALConfig.statLimit && inst.getLimitScore().getScorePoints() < Integer.MAX_VALUE) {
+
+                    inst.getLimitScore().setScorePoints(inst.getLimitScore().getScorePoints() + 1);
+
+                    showAugLimit(player);
+                    granted = true;
+                    stack.shrink(1);
                 }
-            }
+                break;
+        }
 
-            if (player instanceof EntityPlayerMP) {
-                LSPECIALMod.syncStats((EntityPlayerMP) player); // server -> client sync
-            }
+        if (granted && player instanceof EntityPlayerMP) {
+            LSPECIALMod.syncStats((EntityPlayerMP) player);
         }
     }
 
-    private void processBob(Score score, ItemStack stack, EntityPlayer player) {
-        if (score.getScorePoints() >= inst.getLimitScore().getScorePoints()) {
-            player.sendStatusMessage(new TextComponentString(LIMIT_MESSAGE), true);
-        } else {
-            stack.setCount(stack.getCount() - 1);
-            score.setScorePoints(score.getScorePoints() + 1);
+    private boolean grant(Score score, boolean enabled, ItemStack stack, EntityPlayer player) {
+        if (!enabled) {
+            return false;
+        }
+
+        if (LSPECIALConfig.statLimit
+                && score.getScorePoints() >= inst.getLimitScore().getScorePoints()) {
+            message(player, LSPECIALConfig.limitMessage);
+            return false;
+        }
+
+        int gain = LSPECIALConfig.statsPerBobblehead;
+
+        if (LSPECIALConfig.statLimit) {
+            int remaining = Math.max(0, inst.getLimitScore().getScorePoints() - score.getScorePoints());
+            gain = Math.min(gain, remaining);
+        }
+
+        if (gain <= 0) {
+            message(player, LSPECIALConfig.limitMessage);
+            return false;
+        }
+
+        score.setScorePoints(score.getScorePoints() + gain);
+        stack.shrink(1);
+        return true;
+    }
+
+    private boolean grantWithPerk(Score score, Score bonus, boolean enabled, boolean bonusEnabled, ItemStack stack, EntityPlayer player) {
+        if (!grant(score, enabled, stack, player)) {
+            return false;
+        }
+
+        if (bonusEnabled && score.getScorePoints() >= 4 && bonus.getScorePoints() != 1) {
+            bonus.setScorePoints(1);
+        }
+
+        return true;
+    }
+
+    private void message(EntityPlayer player, String text) {
+        if (LSPECIALConfig.hotbarMessages && text != null && !text.isEmpty()) {
+            player.sendStatusMessage(new TextComponentString(text), true);
         }
     }
 
-    private void processBobAndLesserPerk(Score score, Score bonus, ItemStack stack, EntityPlayer player) {
-        if (score.getScorePoints() >= inst.getLimitScore().getScorePoints()) {
-            player.sendStatusMessage(new TextComponentString(LIMIT_MESSAGE), true);
+    private void showAugLimit(EntityPlayer player) {
+        if (!LSPECIALConfig.statLimit) {
             return;
         }
 
-        stack.setCount(stack.getCount() - 1);
-        score.setScorePoints(score.getScorePoints() + 1);
-        if (score.getScorePoints() >= 4 && bonus.getScorePoints() != 1) {
-            bonus.setScorePoints(1);
+        augLimit++;
+
+        if (!LSPECIALConfig.variedAugLimitMessages) {
+            message(player, LSPECIALConfig.augLimitMessage);
+            return;
+        }
+
+        if (augLimit >= 20) {
+            message(player, LSPECIALConfig.aug20);
+        } else if (augLimit >= 10) {
+            message(player, LSPECIALConfig.aug10);
+        } else if (augLimit >= 5) {
+            message(player, LSPECIALConfig.aug5);
+        } else {
+            message(player, LSPECIALConfig.augUnder5);
         }
     }
 }
