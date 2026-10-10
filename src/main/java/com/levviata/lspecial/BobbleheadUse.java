@@ -65,7 +65,7 @@ public class BobbleheadUse {
                 stack.setCount(stack.getCount() - 1);
                 inst.getLimitScore().setScorePoints(inst.getLimitScore().getScorePoints() + 1);
 
-                augLimit++;
+                augLimit++; // doesnt save or sync, maybe add it as a separate synced value?
                 if (augLimit >= 20) {
                     player.sendStatusMessage(new TextComponentString("Limit++"), true);
                 } else if (augLimit >= 10) {
