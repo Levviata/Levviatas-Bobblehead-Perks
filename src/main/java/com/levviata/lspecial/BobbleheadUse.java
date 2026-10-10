@@ -15,8 +15,7 @@ import static com.levviata.lspecial.SPECIALScoreboard.inst;
 
 public class BobbleheadUse {
     private static final String LIMIT_MESSAGE = "I have reached my limit, I can't consume more.";
-
-    int funLimit = 10;
+    private int augLimit = 0;
 
     @SubscribeEvent
     public void use(PlayerInteractEvent.RightClickItem event) {
@@ -27,7 +26,6 @@ public class BobbleheadUse {
         }
 
         ItemStack bob = new ItemStack(Objects.requireNonNull(Item.getByNameOrId("hbm:bobblehead")));
-        //ItemStack bob = new ItemStack(Objects.requireNonNull(Item.getByNameOrId("minecraft:dye"))); // test
 
         ItemStack stack = event.getItemStack();
 
@@ -41,6 +39,7 @@ public class BobbleheadUse {
 
         // when a hbm:bobblehead is crouch right-clicked, I remove the item and set a flag as true
         if (stack.getItem().equals(bob.getItem()) && player.isSneaking()) {
+            // these if statement are retarded but dont bark at it for me ok?
             if (stack.getItemDamage() == 1) {
                 processBob(inst.getStrengthScore(), stack, player);
             }
@@ -62,6 +61,21 @@ public class BobbleheadUse {
             if (stack.getItemDamage() == 7) {
                 processBob(inst.getLuckScore(), stack, player);
             }
+            if (stack.getItemDamage() > 7) {
+                stack.setCount(stack.getCount() - 1);
+                inst.getLimitScore().setScorePoints(inst.getLimitScore().getScorePoints() + 1);
+
+                augLimit++;
+                if (augLimit >= 20) {
+                    player.sendStatusMessage(new TextComponentString("Limit++"), true);
+                } else if (augLimit >= 10) {
+                    player.sendStatusMessage(new TextComponentString("SPECIAL limit++"), true);
+                } else if (augLimit >= 5) {
+                    player.sendStatusMessage(new TextComponentString("Augmented SPECIAL limit by one"), true);
+                } else {
+                    player.sendStatusMessage(new TextComponentString("Augmented my SPECIAL limit by one, cool"), true);
+                }
+            }
 
             if (player instanceof EntityPlayerMP) {
                 LSPECIALMod.syncStats((EntityPlayerMP) player); // server -> client sync
@@ -70,9 +84,8 @@ public class BobbleheadUse {
     }
 
     private void processBob(Score score, ItemStack stack, EntityPlayer player) {
-        if (score.getScorePoints() >= funLimit) {
+        if (score.getScorePoints() >= inst.getLimitScore().getScorePoints()) {
             player.sendStatusMessage(new TextComponentString(LIMIT_MESSAGE), true);
-            //Minecraft.getMinecraft().ingameGUI.setOverlayMessage(new TextComponentString(LIMIT_MESSAGE), false);
         } else {
             stack.setCount(stack.getCount() - 1);
             score.setScorePoints(score.getScorePoints() + 1);
@@ -80,9 +93,8 @@ public class BobbleheadUse {
     }
 
     private void processBobAndLesserPerk(Score score, Score bonus, ItemStack stack, EntityPlayer player) {
-        if (score.getScorePoints() >= funLimit) {
+        if (score.getScorePoints() >= inst.getLimitScore().getScorePoints()) {
             player.sendStatusMessage(new TextComponentString(LIMIT_MESSAGE), true);
-            //Minecraft.getMinecraft().ingameGUI.setOverlayMessage(new TextComponentString(LIMIT_MESSAGE), false);
             return;
         }
 

@@ -28,7 +28,7 @@ import static com.levviata.lspecial.potion.PotionAmplifiedRegeneration.AMPLIFIED
 @Mod(modid = Tags.MOD_ID, name = Tags.MOD_NAME, version = Tags.VERSION)
 public class LSPECIALMod {
 
-    // todo: 1. bobbleheads above meta 7 augment limit. 2. recipes for them to reduce grinding
+    // todo: recipes to reduce grinding
 
     public static final Logger LOGGER = LogManager.getLogger(Tags.MOD_NAME);
 
@@ -82,17 +82,12 @@ public class LSPECIALMod {
         event.registerServerCommand(new CommandSetSpeed());
         event.registerServerCommand(new CommandSetFlySpeed());
     }
+
     public static void syncStats(EntityPlayerMP player) {
-        NETWORK.sendTo(new SyncSPECIALStatsPacket(SPECIALScoreboard.inst.getStrengthScore().getScorePoints(),
-                SPECIALScoreboard.inst.getPerceptionScore().getScorePoints(),
-                SPECIALScoreboard.inst.getEnduranceScore().getScorePoints(),
-                SPECIALScoreboard.inst.getEnduranceBonusScore().getScorePoints(),
-                SPECIALScoreboard.inst.getCharismaScore().getScorePoints(),
-                SPECIALScoreboard.inst.getCharismaBonusScore().getScorePoints(),
-                SPECIALScoreboard.inst.getIntelligenceScore().getScorePoints(),
-                SPECIALScoreboard.inst.getAgilityScore().getScorePoints(),
-                SPECIALScoreboard.inst.getLuckScore().getScorePoints()),
-                player);
+        NETWORK.sendTo(new SyncSPECIALStatsPacket(SPECIALScoreboard.inst.getStrengthScore().getScorePoints(), SPECIALScoreboard.inst.getPerceptionScore().getScorePoints(), SPECIALScoreboard.inst.getEnduranceScore().getScorePoints(),
+                SPECIALScoreboard.inst.getEnduranceBonusScore().getScorePoints(), SPECIALScoreboard.inst.getCharismaScore().getScorePoints(), SPECIALScoreboard.inst.getCharismaBonusScore().getScorePoints(),
+                SPECIALScoreboard.inst.getIntelligenceScore().getScorePoints(), SPECIALScoreboard.inst.getAgilityScore().getScorePoints(), SPECIALScoreboard.inst.getLuckScore().getScorePoints(),
+                SPECIALScoreboard.inst.getLimitScore().getScorePoints()), player);
     }
 /*
 

@@ -13,11 +13,12 @@ public class SyncSPECIALStatsPacket implements IMessage {
     public int intelligence;
     public int agility;
     public int luck;
+    public int limit;
 
     public SyncSPECIALStatsPacket() {
     }
 
-    public SyncSPECIALStatsPacket(int strength, int perception, int endurance, int enduranceBonus, int charisma, int charismaBonus, int intelligence, int agility, int luck) {
+    public SyncSPECIALStatsPacket(int strength, int perception, int endurance, int enduranceBonus, int charisma, int charismaBonus, int intelligence, int agility, int luck, int limit) {
         this.strength = strength;
         this.perception = perception;
         this.endurance = endurance;
@@ -27,6 +28,7 @@ public class SyncSPECIALStatsPacket implements IMessage {
         this.intelligence = intelligence;
         this.agility = agility;
         this.luck = luck;
+        this.limit = limit;
     }
 
     @Override
@@ -40,6 +42,7 @@ public class SyncSPECIALStatsPacket implements IMessage {
         intelligence = buf.readInt();
         agility = buf.readInt();
         luck = buf.readInt();
+        limit = buf.readInt();
     }
 
     @Override
@@ -53,5 +56,6 @@ public class SyncSPECIALStatsPacket implements IMessage {
         buf.writeInt(intelligence);
         buf.writeInt(agility);
         buf.writeInt(luck);
+        buf.writeInt(limit);
     }
 }

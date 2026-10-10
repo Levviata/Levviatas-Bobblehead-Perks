@@ -37,6 +37,8 @@ public class GuiSPECIAL extends GuiScreen {
         drawString(this.fontRenderer, "Agility: " + inst.getClientAgility(), x + 10, textY, 0xFFFFFFFF);
         textY += 15;
         drawString(this.fontRenderer, "Luck: " + inst.getClientLuck(), x + 10, textY, 0xFFFFFFFF);
+        textY += 15;
+        drawString(this.fontRenderer, "Stat Limit: " + inst.getClientLimit(), x + 10, textY, 0xFFFFFFFF);
     }
 
     @Override

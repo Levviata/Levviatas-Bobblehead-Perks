@@ -20,6 +20,7 @@ public class SPECIALScoreboard {
     public final String CHARISMA_BONUS_BOARD = "Charisma_Bonus";
     public final String AGILITY_BOARD = "Agility";
     public final String LUCK_BOARD = "Luck";
+    public final String LIMIT_BOARD = "Limit";
 
     public void startBoards() {
         if (scoreboard.getObjective(STRENGTH_BOARD) == null) {
@@ -60,6 +61,7 @@ public class SPECIALScoreboard {
     private Score charismaBonusScore;
     private Score agilityScore;
     private Score luckScore;
+    private Score limitScore;
     private int clientStrength;
     private int clientPerception;
     private int clientEndurance;
@@ -69,6 +71,7 @@ public class SPECIALScoreboard {
     private int clientIntelligence;
     private int clientAgility;
     private int clientLuck;
+    private int clientLimit;
 
     public void startScores(EntityPlayer player) {
         ScoreObjective objStrength = scoreboard.getObjective(STRENGTH_BOARD);
@@ -80,6 +83,7 @@ public class SPECIALScoreboard {
         ScoreObjective objIntelligence = scoreboard.getObjective(INTELLIGENCE_BOARD);
         ScoreObjective objAgility = scoreboard.getObjective(AGILITY_BOARD);
         ScoreObjective objLuck = scoreboard.getObjective(LUCK_BOARD);
+        ScoreObjective objLimit = scoreboard.getObjective(LIMIT_BOARD);
 
         strengthScore = scoreboard.getOrCreateScore(player.getName(), objStrength);
         perceptionScore = scoreboard.getOrCreateScore(player.getName(), objPerception);
@@ -90,9 +94,13 @@ public class SPECIALScoreboard {
         intelligenceScore = scoreboard.getOrCreateScore(player.getName(), objIntelligence);
         agilityScore = scoreboard.getOrCreateScore(player.getName(), objAgility);
         luckScore = scoreboard.getOrCreateScore(player.getName(), objLuck);
+        limitScore = scoreboard.getOrCreateScore(player.getName(), objLimit);
+        if (limitScore.getScorePoints() == 0) {
+            limitScore.setScorePoints(10);
+        }
     }
 
-    public void setClientScores(int strength, int perception, int endurance, int enduranceBonus, int charisma, int charismaBonus, int intelligence, int agility, int luck) {
+    public void setClientScores(int strength, int perception, int endurance, int enduranceBonus, int charisma, int charismaBonus, int intelligence, int agility, int luck, int limit) {
         clientStrength = strength;
         clientPerception = perception;
         clientEndurance = endurance;
@@ -102,78 +110,47 @@ public class SPECIALScoreboard {
         clientIntelligence = intelligence;
         clientAgility = agility;
         clientLuck = luck;
+        clientLimit = limit;
     }
 
     public Score getStrengthScore() {
         return strengthScore;
     }
 
-    public void setStrengthScore(Score strengthScore) {
-        this.strengthScore = strengthScore;
-    }
-
     public Score getPerceptionScore() {
         return perceptionScore;
-    }
-
-    public void setPerceptionScore(Score perceptionScore) {
-        this.perceptionScore = perceptionScore;
     }
 
     public Score getEnduranceScore() {
         return enduranceScore;
     }
 
-    public void setEnduranceScore(Score enduranceScore) {
-        this.enduranceScore = enduranceScore;
-    }
-
     public Score getEnduranceBonusScore() {
         return enduranceBonusScore;
-    }
-
-    public void setEnduranceBonusScore(Score enduranceBonusScore) {
-        this.enduranceBonusScore = enduranceBonusScore;
     }
 
     public Score getIntelligenceScore() {
         return intelligenceScore;
     }
 
-    public void setIntelligenceScore(Score intelligenceScore) {
-        this.intelligenceScore = intelligenceScore;
-    }
-
     public Score getCharismaScore() {
         return charismaScore;
-    }
-
-    public void setCharismaScore(Score charismaScore) {
-        this.charismaScore = charismaScore;
     }
 
     public Score getCharismaBonusScore() {
         return charismaBonusScore;
     }
 
-    public void setCharismaBonusScore(Score charismaBonusScore) {
-        this.charismaBonusScore = charismaBonusScore;
-    }
-
     public Score getAgilityScore() {
         return agilityScore;
-    }
-
-    public void setAgilityScore(Score agilityScore) {
-        this.agilityScore = agilityScore;
     }
 
     public Score getLuckScore() {
         return luckScore;
     }
 
-    public void setLuckScore(Score luckScore) {
-        this.luckScore = luckScore;
+    public Score getLimitScore() {
+        return limitScore;
     }
 
     public int getClientStrength() {
@@ -210,5 +187,9 @@ public class SPECIALScoreboard {
 
     public int getClientLuck() {
         return clientLuck;
+    }
+
+    public int getClientLimit() {
+        return clientLimit;
     }
 }
