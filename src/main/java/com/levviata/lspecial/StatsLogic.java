@@ -159,7 +159,7 @@ public class StatsLogic {
             maxHealth.removeModifier(MAX_HEALTH_UUID);
 
             if (LSPECIALConfig.endurance) {
-                maxHealth.applyModifier(new AttributeModifier(MAX_HEALTH_UUID, nameIn, expression(LSPECIALConfig.enduranceFormula, "endurance", inst.getEnduranceScore().getScorePoints()), 0));
+                maxHealth.applyModifier(new AttributeModifier(MAX_HEALTH_UUID, nameIn, expression(LSPECIALConfig.enduranceFormula, "endurance", inst.getEnduranceScore().getScorePoints() * 2), 0));
             }
         }
 
