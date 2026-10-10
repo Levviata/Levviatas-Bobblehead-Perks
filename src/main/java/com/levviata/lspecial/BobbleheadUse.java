@@ -13,8 +13,6 @@ import static com.levviata.lspecial.SPECIALScoreboard.inst;
 
 public class BobbleheadUse {
 
-    //private static final String USES_TAG = "lspecialUses";
-
     private int augLimit = 0;
 
     @SubscribeEvent
@@ -39,9 +37,7 @@ public class BobbleheadUse {
         inst.startBoards();
         inst.startScores(player);
 
-        //String mode = LSPECIALConfig.bobbleheadConsumption;
-
-        if (/*!"ON_USE".equals(mode) &&*/ stack.getCount() > 1) {
+        if (stack.getCount() > 1) {
             ItemStack individual = stack.splitStack(1);
 
             if (!player.inventory.addItemStackToInventory(individual)) {
@@ -91,22 +87,13 @@ public class BobbleheadUse {
                 granted = grant(inst.getLuckScore(), LSPECIALConfig.luck, stack, player);
                 break;
             default:
-                if (metadata > 7
-                        && LSPECIALConfig.statLimit
-                        && inst.getLimitScore().getScorePoints() < Integer.MAX_VALUE) {
+                if (metadata > 7 && LSPECIALConfig.statLimit && inst.getLimitScore().getScorePoints() < Integer.MAX_VALUE) {
 
-                    /*if ("NEVER".equals(mode) && uses(stack) >= 1) {
-                        break;
-                    }*/
-
-                    inst.getLimitScore().setScorePoints(
-                            inst.getLimitScore().getScorePoints() + 1
-                    );
+                    inst.getLimitScore().setScorePoints(inst.getLimitScore().getScorePoints() + 1);
 
                     showAugLimit(player);
                     granted = true;
                     stack.shrink(1);
-                    //consumeAccordingToMode(stack, player);
                 }
                 break;
         }
@@ -127,10 +114,6 @@ public class BobbleheadUse {
             return false;
         }
 
-        /*if ("NEVER".equals(LSPECIALConfig.bobbleheadConsumption) && uses(stack) >= 1) {
-            return false;
-        }*/
-
         int gain = LSPECIALConfig.statsPerBobblehead;
 
         if (LSPECIALConfig.statLimit) {
@@ -145,7 +128,6 @@ public class BobbleheadUse {
 
         score.setScorePoints(score.getScorePoints() + gain);
         stack.shrink(1);
-        //consumeAccordingToMode(stack, player);
         return true;
     }
 
@@ -160,33 +142,6 @@ public class BobbleheadUse {
 
         return true;
     }
-/*
-    private int uses(ItemStack stack) {
-        return stack.hasTagCompound()
-                ? stack.getTagCompound().getInteger(USES_TAG)
-                : 0;
-    }
-
-    private void consumeAccordingToMode(ItemStack stack, EntityPlayer player) {
-        String mode = LSPECIALConfig.bobbleheadConsumption;
-
-        if ("ON_USE".equals(mode)) {
-            stack.shrink(1);
-            return;
-        }
-
-        int uses = uses(stack) + 1;
-
-        if (!stack.hasTagCompound()) {
-            stack.setTagCompound(new NBTTagCompound());
-        }
-
-        stack.getTagCompound().setInteger(USES_TAG, uses);
-
-        if ("EVERY_X_USES".equals(mode) && uses >= LSPECIALConfig.bobbleheadUsesPerConsumption) {
-            stack.shrink(1);
-        }
-    }*/
 
     private void message(EntityPlayer player, String text) {
         if (LSPECIALConfig.hotbarMessages && text != null && !text.isEmpty()) {

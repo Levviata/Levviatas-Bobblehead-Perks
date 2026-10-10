@@ -147,11 +147,6 @@ public final class LSPECIALConfig {
 
        // Bobblehead consumption
         statsPerBobblehead = i(BOB, "statsPerBobblehead", 1, 1, Integer.MAX_VALUE, "Points per bobblehead");
-        /* bobbleheadConsumption = s(BOB, "consumptionMode", "ON_USE", "ON_USE, EVERY_X_USES, NEVER");
-        if (!bobbleheadConsumption.equals("ON_USE") && !bobbleheadConsumption.equals("EVERY_X_USES") && !bobbleheadConsumption.equals("NEVER")) {
-            bobbleheadConsumption = "ON_USE";
-        }
-        bobbleheadUsesPerConsumption = i(BOB, "usesPerConsumption", 1, 1, 1000000, "Successful uses before consuming item");*/
         bobbleheadRename = b(BOB, "rename", true, "Rename bobblehead tooltip labels");
 
         // Guns and ammunition
