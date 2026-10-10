@@ -99,10 +99,9 @@ public class StatsLogic {
             return;
         }
 
-
         EntityPlayer player = event.player;
 
-        if (player.world == null || player.world.isRemote) {
+        if (player.world == null || player.world.isRemote) { // server sided
             return;
         }
 
@@ -150,9 +149,7 @@ public class StatsLogic {
         }
 
         // agility
-        // todo 0.5 increases for flight speed, also needs attribute modifier fly speed fix
         IAttributeInstance movementSpeed = player.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED);
-        IAttributeInstance flySpeed = player.getEntityAttribute(SharedMonsterAttributes.FLYING_SPEED);
         if (inst.getAgilityScore().getScorePoints() != previousAgility || getPlayerSpeed(player) != -1 && inst.getAgilityScore().getScorePoints() != getPlayerSpeed(player)) {
             if (getPlayerSpeed(player) > -1) {
                 previousAgility = getPlayerSpeed(player);
@@ -161,7 +158,6 @@ public class StatsLogic {
             }
 
             movementSpeed.removeModifier(MOVEMENT_SPEED_UUID);
-            //flySpeed.removeModifier(FLYING_SPEED_UUID);
 
             // operationIn: multiplicative
             // 7.5% increase per point up to 75%
@@ -170,15 +166,19 @@ public class StatsLogic {
             } else {
                 movementSpeed.applyModifier(new AttributeModifier(MOVEMENT_SPEED_UUID, nameIn, inst.getAgilityScore().getScorePoints() * 0.075D, 1));
             }
-
-           if (getPlayerFlySpeed(player) > -1) {
-                flySpeed.applyModifier(new AttributeModifier(FLYING_SPEED_UUID, nameIn, getPlayerFlySpeed(player) * 0.075D, 1));
+/*          this sucks, its either too fast or too slow
+            float def = 0.05f;
+            player.capabilities.setFlySpeed(def);
+            // im not sure if this works, if it doesnt, maybe sync problems?
+            if (getPlayerFlySpeed(player) > -1) {
+                player.capabilities.setFlySpeed(player.capabilities.getFlySpeed() * (getPlayerFlySpeed(player) / 0.075f));
             } else {
-                flySpeed.applyModifier(new AttributeModifier(FLYING_SPEED_UUID, nameIn, inst.getAgilityScore().getScorePoints() * 0.075D, 1));
-            }
+                player.capabilities.setFlySpeed(player.capabilities.getFlySpeed() * (inst.getAgilityScore().getScorePoints() / 0.075f));
+            }*/
         }
+        //originalFlySpeed = player.capabilities.getFlySpeed();
 
-        givePotions(player);
+       // LOGGER.info(player.capabilities.getFlySpeed());
 
         // perception, intelligence, and luck
         // todo make perception increase found loot
@@ -220,6 +220,8 @@ public class StatsLogic {
             //clean for next cycle
             cleanGun(heldStack, player);
         }
+
+        givePotions(player);
     }
 
     public void modifyGuns(ItemStack heldStack, EntityPlayer player, GunConfig cfg) {
@@ -366,6 +368,7 @@ public class StatsLogic {
             }
         }
     }
+
 
     public static List<UUID> getUUIDs() {
         if (uuids.isEmpty()) {
