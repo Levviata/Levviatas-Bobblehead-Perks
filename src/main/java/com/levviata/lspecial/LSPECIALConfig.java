@@ -156,8 +156,8 @@ public final class LSPECIALConfig {
 
         // Guns and ammunition
         refundAmmoFormula = s(GUNS, "refundAmmoFormula", refundAmmoFormula, "Validated expression; variable: luck");
-        modifyGuns = b(GUNS, "modifyGuns", true, "Master switch for gun modifications");
-        buckshotDelayNerf = b(GUNS, "buckshotDelayNerf", true, "Use the buckshot/automatic delay formula");
+        modifyGuns = b(GUNS, "modifyGuns", true, "Master switch for gun modifications. Whether to modify Nuclear Tech guns at all.");
+        buckshotDelayNerf = b(GUNS, "buckshotDelayNerf", true, "Use the nerfed delay formula for guns that use buckshot (shotguns)");
         revolverPerk = b(GUNS, "revolverHigherPerk", true, "Enable Intelligence revolver perk");
         pepperboxPerk = b(GUNS, "pepperboxLesserPerk", true, "Enable Pepperbox lesser perk");
         refundMagazines = b(GUNS, "refundMagazines", true, "Enable magazine refunds");
@@ -271,18 +271,16 @@ public final class LSPECIALConfig {
         return (CLIENT.equals(category) ? "[Client-side] " : "[Server-side] ") + comment;
     }
 
+    // boolean, integer, double, or string
     private static boolean b(String category, String key, boolean defaultValue, String comment) {
         return config.get(category, key, defaultValue, sideComment(category, comment)).getBoolean(defaultValue);
     }
-
     private static int i(String category, String key, int defaultValue, int min, int max, String comment) {
         return config.get(category, key, defaultValue, sideComment(category, comment), min, max).getInt(defaultValue);
     }
-
     private static double d(String category, String key, double defaultValue, double min, double max, String comment) {
         return config.get(category, key, defaultValue, sideComment(category, comment), min, max).getDouble(defaultValue);
     }
-
     private static String s(String category, String key, String defaultValue, String comment) {
         return config.get(category, key, defaultValue, sideComment(category, comment)).getString();
     }
