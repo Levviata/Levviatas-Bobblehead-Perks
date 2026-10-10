@@ -140,24 +140,18 @@ public final class LSPECIALConfig {
         agility = b(STATS, "agility", true, "Enable Agility");
         luck = b(STATS, "luck", true, "Enable Luck");
         statLimit = b(STATS, "statLimit", true, "Enforce the SPECIAL stat limit");
-        hideDisabledStats = b(STATS, "hideDisabledStats", true,
-                "Hide disabled stats in GuiSPECIAL; false strikes them through");
+        hideDisabledStats = b(STATS, "hideDisabledStats", true, "Hide disabled stats in GuiSPECIAL; false strikes them through");
         charismaBonus = b(STATS, "charismaBonus", true, "Enable Charisma bonus");
         enduranceBonus = b(STATS, "enduranceBonus", true, "Enable Endurance bonus");
-        infiniteItemDurability = b(STATS, "infiniteItemDurability", true,
-                "Intelligence lesser perk: held damageable items do not lose durability at Intelligence 5+");
+        infiniteItemDurability = b(STATS, "infiniteItemDurability", true, "Intelligence lesser perk: held damageable items do not lose durability at Intelligence 5+");
 
         // Bobblehead consumption
         statsPerBobblehead = i(BOB, "statsPerBobblehead", 1, 1, 100, "Points per bobblehead");
-        bobbleheadConsumption = s(BOB, "consumptionMode", "ON_USE",
-                "ON_USE, EVERY_X_USES, NEVER");
-        if (!bobbleheadConsumption.equals("ON_USE")
-                && !bobbleheadConsumption.equals("EVERY_X_USES")
-                && !bobbleheadConsumption.equals("NEVER")) {
+        bobbleheadConsumption = s(BOB, "consumptionMode", "ON_USE", "ON_USE, EVERY_X_USES, NEVER");
+        if (!bobbleheadConsumption.equals("ON_USE") && !bobbleheadConsumption.equals("EVERY_X_USES") && !bobbleheadConsumption.equals("NEVER")) {
             bobbleheadConsumption = "ON_USE";
         }
-        bobbleheadUsesPerConsumption = i(BOB, "usesPerConsumption", 1, 1, 1000000,
-                "Successful uses before consuming item");
+        bobbleheadUsesPerConsumption = i(BOB, "usesPerConsumption", 1, 1, 1000000, "Successful uses before consuming item");
         bobbleheadRename = b(BOB, "rename", true, "Rename bobblehead tooltip labels");
 
         // Guns and ammunition
@@ -197,7 +191,7 @@ public final class LSPECIALConfig {
         toggleSpecial = b(CLIENT, "toggleSpecial", true, "Enable toggleSpecial keybind");
         setSpeedCommand = b(COMMANDS, "setSpeedCommand", true, "Register /setspeed");
         setFlySpeedCommand = b(COMMANDS, "setFlySpeedCommand", true, "Register /setflyspeed");
-        nukeFrance = b(COMMANDS, "nukeFrance", false, "Dummy joke option; no gameplay effect");
+        nukeFrance = b(COMMANDS, "nukeFrance", false, "we all want to, dont we?");
 
         // Recipe switches
         String[] recipeNames = {"recipeStrength", "recipePerception", "recipeEndurance", "recipeCharisma", "recipeIntelligence", "recipeAgility", "recipeLuck"};
@@ -306,13 +300,7 @@ public final class LSPECIALConfig {
             elements.add(new ConfigElement(category));
         }
 
-        return new GuiConfig(
-                parent,
-                elements,
-                Tags.MOD_ID,
-                false,
-                false,
-                Tags.MOD_NAME + " Configuration"
+        return new GuiConfig(parent, elements, Tags.MOD_ID, false, false, Tags.MOD_NAME + " Configuration"
         );
     }
 }
