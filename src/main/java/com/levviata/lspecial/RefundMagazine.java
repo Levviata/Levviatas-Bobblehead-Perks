@@ -8,6 +8,9 @@ import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static com.levviata.lspecial.SPECIALScoreboard.inst;
 
 public class RefundMagazine implements IMagazine<BulletConfig> {

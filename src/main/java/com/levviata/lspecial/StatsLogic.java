@@ -253,7 +253,7 @@ public class StatsLogic {
     private void processReceiver(Receiver recIn, float ogDmg, int ogDelay, ItemStack heldStackIn, EntityPlayer player) {
         ItemGunBaseNT gun = (ItemGunBaseNT) heldStackIn.getItem();
 
-        recIn.dmg(ogDmg + (LSPECIALConfig.perception ? expression(LSPECIALConfig.perceptionGunDamageFormula, "perception", inst.getPerceptionScore().getScorePoints(), "originalDamage", (double)ogDmg) : 0));
+        recIn.dmg((float) (ogDmg + (LSPECIALConfig.perception ? expression(LSPECIALConfig.perceptionGunDamageFormula, "perception", inst.getPerceptionScore().getScorePoints(), "originalDamage", (double)ogDmg) : 0)));
         //LOGGER.info(recIn.getInnateSpread(heldStackIn));
 
         BulletConfig bC = (BulletConfig) recIn.getMagazine(heldStackIn).getType(heldStackIn, player.inventory);

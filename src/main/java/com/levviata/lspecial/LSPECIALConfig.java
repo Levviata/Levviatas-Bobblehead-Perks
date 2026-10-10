@@ -5,6 +5,7 @@ import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.ConfigCategory;
 import net.minecraftforge.fml.client.config.GuiConfig;
 import net.minecraftforge.fml.client.config.IConfigElement;
+import net.minecraftforge.common.config.ConfigElement;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent;
