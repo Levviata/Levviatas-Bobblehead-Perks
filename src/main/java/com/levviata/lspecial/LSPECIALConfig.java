@@ -49,7 +49,7 @@ public final class LSPECIALConfig {
     public static int potionTimeTicks = 115;
     public static int charismaPotionAmplifier = 0;
     public static int endurancePotionAmplifier = 1;
-    public static int bobbleheadUsesPerConsumption = 1;
+    //public static int bobbleheadUsesPerConsumption = 1;
 
     public static boolean infiniteItemDurability = true;
     public static boolean charismaBonus = true;
@@ -69,7 +69,7 @@ public final class LSPECIALConfig {
     public static boolean setFlySpeedCommand = true;
     public static boolean nukeFrance = false;
 
-    public static String bobbleheadConsumption = "ON_USE";
+    //public static String bobbleheadConsumption = "ON_USE";
     public static String limitMessage = "I have reached my limit, I can't consume more.";
     public static String augLimitMessage = "Augmented SPECIAL limit by one";
     public static String augUnder5 = "Augmented my SPECIAL limit by one, cool";
@@ -97,26 +97,26 @@ public final class LSPECIALConfig {
 
     public static boolean[] recipeEnabled = {true, true, true, true, true, true, true};
 
-    public static String oreAnyBobblehead = "anyBobblehead";
+    public static String oreBobblehead = "bobblehead";
     public static String oreAppleLead = "appleLead";
     public static String oreAmmo = "ammo";
     public static String oreLuckAccessory = "luckAccessory";
     public static String oreLuckyGem = "luckyGem";
 
-    public static String oreAnyBobbleheadEntries = "hbm:bobblehead:8-28";
+    public static String oreBobbleheadEntries = "hbm:bobblehead:8-28";
     public static String oreAppleLeadEntries = "hbm:apple_lead:0-2";
     public static String oreAmmoEntries = "hbm:ammo_standard:0-94";
     public static String oreLuckAccessoryEntries = "hbm:bandaid:0,hbm:serum:0,hbm:spider_milk:0,hbm:heart_piece:0,hbm:wd40:0";
     public static String oreLuckyGemEntries = "minecraft:emerald:0,minecraft:diamond:0";
 
     public static String[] recipeIngredients = {
-            "anyBobblehead,hbm:schnitzel_vegan,appleLead,hbm:ingot_u235",
-            "anyBobblehead,hbm:weapon_mod_special:1,hbm:weapon_mod_special:6,ammo",
-            "anyBobblehead,hbm:med_bag,hbm:crackpipe,potion:healing|strong_healing",
-            "anyBobblehead,hbm:cobalt_helmet,hbm:steel_helmet,hbm:titanium_helmet",
-            "anyBobblehead,hbm:part_mechanism:34,hbm:circuit:9,hbm:gun_kit_2",
-            "anyBobblehead,hbm:cotton_candy,potion:swiftness|long_swiftness|strong_swiftness,minecraft:sugar",
-            "anyBobblehead,ammo,luckyGem,luckAccessory"
+            "bobblehead,hbm:schnitzel_vegan,appleLead,hbm:ingot_u235",
+            "bobblehead,hbm:weapon_mod_special:1,hbm:weapon_mod_special:6,ammo",
+            "bobblehead,hbm:med_bag,hbm:crackpipe,potion:healing|strong_healing",
+            "bobblehead,hbm:cobalt_helmet,hbm:steel_helmet,hbm:titanium_helmet",
+            "bobblehead,hbm:part_mechanism:34,hbm:circuit:9,hbm:gun_kit_2",
+            "bobblehead,hbm:cotton_candy,potion:swiftness|long_swiftness|strong_swiftness,minecraft:sugar",
+            "bobblehead,ammo,luckyGem,luckAccessory"
     };
 
     public static void init(File file) {
@@ -145,13 +145,13 @@ public final class LSPECIALConfig {
         enduranceBonus = b(STATS, "enduranceBonus", true, "Enable Endurance bonus");
         infiniteItemDurability = b(STATS, "infiniteItemDurability", true, "Intelligence lesser perk: held damageable items do not lose durability at Intelligence 5+");
 
-        // Bobblehead consumption
-        statsPerBobblehead = i(BOB, "statsPerBobblehead", 1, 1, 100, "Points per bobblehead");
-        bobbleheadConsumption = s(BOB, "consumptionMode", "ON_USE", "ON_USE, EVERY_X_USES, NEVER");
+       // Bobblehead consumption
+        statsPerBobblehead = i(BOB, "statsPerBobblehead", 1, 1, Integer.MAX_VALUE, "Points per bobblehead");
+        /* bobbleheadConsumption = s(BOB, "consumptionMode", "ON_USE", "ON_USE, EVERY_X_USES, NEVER");
         if (!bobbleheadConsumption.equals("ON_USE") && !bobbleheadConsumption.equals("EVERY_X_USES") && !bobbleheadConsumption.equals("NEVER")) {
             bobbleheadConsumption = "ON_USE";
         }
-        bobbleheadUsesPerConsumption = i(BOB, "usesPerConsumption", 1, 1, 1000000, "Successful uses before consuming item");
+        bobbleheadUsesPerConsumption = i(BOB, "usesPerConsumption", 1, 1, 1000000, "Successful uses before consuming item");*/
         bobbleheadRename = b(BOB, "rename", true, "Rename bobblehead tooltip labels");
 
         // Guns and ammunition
@@ -166,26 +166,26 @@ public final class LSPECIALConfig {
             gunWearMode = "INFINITE_AT_INTELLIGENCE_5";
         }
         gunWearReductionPerIntelligence = d(GUNS, "gunWearReductionPerIntelligence", 0.05, 0, 1, "Wear reduction per Intelligence point");
-        buckshotGaugeList = s(GUNS, "buckshotGaugeList", buckshotGaugeList, "Comma separated ammo metadata values");
-        revolverList = s(GUNS, "revolverList", revolverList, "Comma separated item registry IDs");
+        buckshotGaugeList = s(GUNS, "buckshotGaugeList", buckshotGaugeList, "Comma separated list of ammo metadata values");
+        revolverList = s(GUNS, "revolverList", revolverList, "Comma separated list of item IDs");
 
         // Potions and effects
         amplifiedRegeneration = b(POTIONS, "amplifiedRegeneration", true, "Enable amplified regeneration");
-        respectHigherRegenAmplifier = b(POTIONS, "respectHigherRegenAmplifier", false, "Do not transform vanilla regeneration amplifier > 1");
+        respectHigherRegenAmplifier = b(POTIONS, "respectHigherRegenAmplifier", false, "Removes my custom regeneration amplification, leaving your original regeneration as is");
         regenAmplifierBonus = d(POTIONS, "regenAmplifierBonus", 1.0, 0, 255, "Amplifier bonus");
-        potionTimeTicks = i(POTIONS, "potionTimeTicks", 115, 0, 720000, "Potion duration in ticks");
+        potionTimeTicks = i(POTIONS, "potionTimeTicks", 115, 0, 720000, "Potion duration in ticks. Default value is 5~ seconds");
         charismaPotionAmplifier = i(POTIONS, "charismaPotionAmplifier", 0, 0, 255, "Resistance amplifier");
         endurancePotionAmplifier = i(POTIONS, "endurancePotionAmplifier", 1, 0, 255, "Regeneration amplifier bonus");
 
         // Gameplay messages
         hotbarMessages = b(MESSAGES, "hotbarMessages", true, "Show hotbar messages");
         limitMessage = s(MESSAGES, "limitMessage", limitMessage, "Stat limit reached message");
-        variedAugLimitMessages = b(MESSAGES, "variedAugLimitMessages", true, "Use tiered augLimit messages");
-        augLimitMessage = s(MESSAGES, "augLimitMessage", "Augmented SPECIAL limit by one", "Single augLimit message");
-        augUnder5 = s(MESSAGES, "augUnder5", augUnder5, "Original message below 5");
-        aug5 = s(MESSAGES, "aug5", aug5, "Original message at 5+");
-        aug10 = s(MESSAGES, "aug10", aug10, "Original message at 10+");
-        aug20 = s(MESSAGES, "aug20", aug20, "Original message at 20+");
+        variedAugLimitMessages = b(MESSAGES, "variedAugLimitMessages", true, "Use varied messages when increment stat limit");
+        augLimitMessage = s(MESSAGES, "augLimitMessage", "Augmented SPECIAL limit by one", "Single message with no variety");
+        augUnder5 = s(MESSAGES, "augUnder5", augUnder5, "Triggers under 5 stat limit increases");
+        aug5 = s(MESSAGES, "aug5", aug5, "Triggers above 5 stat limit increases");
+        aug10 = s(MESSAGES, "aug10", aug10, "Triggers above 10 limit increases");
+        aug20 = s(MESSAGES, "aug20", aug20, "Triggers above 20 increases");
 
         // Client interface and commands
         toggleSpecial = b(CLIENT, "toggleSpecial", true, "Enable toggleSpecial keybind");
@@ -200,14 +200,14 @@ public final class LSPECIALConfig {
         }
 
         // Ore dictionary names
-        oreAnyBobblehead = s(RECIPES, "oreAnyBobblehead", "anyBobblehead", "Ore dictionary name");
+        oreBobblehead = s(RECIPES, "oreBobblehead", "bobblehead", "Ore dictionary name");
         oreAppleLead = s(RECIPES, "oreAppleLead", "appleLead", "Ore dictionary name");
         oreAmmo = s(RECIPES, "oreAmmo", "ammo", "Ore dictionary name");
         oreLuckAccessory = s(RECIPES, "oreLuckAccessory", "luckAccessory", "Ore dictionary name");
         oreLuckyGem = s(RECIPES, "oreLuckyGem", "luckyGem", "Ore dictionary name");
 
         // Ore dictionary entries
-        oreAnyBobbleheadEntries = s(RECIPES, "oreAnyBobbleheadEntries", oreAnyBobbleheadEntries, "namespace:item:metadata or namespace:item:start-end, comma separated");
+        oreBobbleheadEntries = s(RECIPES, "oreBobbleheadEntries", oreBobbleheadEntries, "namespace:item:metadata or namespace:item:start-end, comma separated");
         oreAppleLeadEntries = s(RECIPES, "oreAppleLeadEntries", oreAppleLeadEntries, "Ore dictionary entries");
         oreAmmoEntries = s(RECIPES, "oreAmmoEntries", oreAmmoEntries, "Ore dictionary entries");
         oreLuckAccessoryEntries = s(RECIPES, "oreLuckAccessoryEntries", oreLuckAccessoryEntries, "Ore dictionary entries");
@@ -259,10 +259,10 @@ public final class LSPECIALConfig {
             return "Gun mechanics, perks, ammunition and durability.";
         }
         if (category.equals(RECIPES)) {
-            return "Recipe switches and ore dictionary configuration.";
+            return "Recipe toggles and ore dictionary configuration. Needs reload to set.";
         }
         if (category.equals(COMMANDS)) {
-            return "Optional commands and harmless experimental options.";
+            return "Needs reload to set.";
         }
         return "LSPECIAL mod configuration.";
     }
@@ -297,7 +297,7 @@ public final class LSPECIALConfig {
     public static GuiScreen gui(GuiScreen parent) {
         List<IConfigElement> elements = new ArrayList<>();
 
-        for (String categoryName : Arrays.asList(STATS, BOB, GUNS, POTIONS, MESSAGES, CLIENT, ADV)) {
+        for (String categoryName : Arrays.asList(STATS, BOB, GUNS, POTIONS, MESSAGES, RECIPES, CLIENT, COMMANDS, ADV)) {
             ConfigCategory category = config.getCategory(categoryName);
             elements.add(new ConfigElement(category));
         }
