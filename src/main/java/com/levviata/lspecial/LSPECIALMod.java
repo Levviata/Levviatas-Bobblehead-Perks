@@ -30,9 +30,6 @@ import static com.levviata.lspecial.potion.PotionAmplifiedRegeneration.AMPLIFIED
 
 @Mod(modid = Tags.MOD_ID, name = Tags.MOD_NAME, version = Tags.VERSION, guiFactory = "com.levviata.lspecial.LSPECIALGuiFactory")
 public class LSPECIALMod {
-
-    // todo: recipes to reduce grinding
-
     public static final Logger LOGGER = LogManager.getLogger(Tags.MOD_NAME);
 
     public static final SimpleNetworkWrapper NETWORK = NetworkRegistry.INSTANCE.newSimpleChannel(Tags.MOD_ID);

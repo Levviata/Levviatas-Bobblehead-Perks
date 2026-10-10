@@ -68,14 +68,31 @@ public class StatsLogic {
 
     static List<Item> g = new ArrayList<>();
     static List<String> r = new ArrayList<>();
+
     public static void init() {
-        g.clear(); r.clear();
+        g.clear();
+        r.clear();
+
         for (String raw : LSPECIALConfig.buckshotGaugeList.split(",")) {
-            String token = raw.trim(); if (token.isEmpty()) continue;
-            if (token.matches("\\d+")) g.add(new RecipesCommon.ComparableStack(ModItems.ammo_standard, 1, Integer.parseInt(token)).getStack().getItem());
-            else { String[] parts = token.split(":"); if (parts.length >= 3 && parts[0].equals("hbm") && parts[1].equals("ammo_secret")) g.add(new RecipesCommon.ComparableStack(ModItems.ammo_secret, 1, Integer.parseInt(parts[2])).getStack().getItem()); }
+            String token = raw.trim();
+
+            if (token.isEmpty()) {
+                continue;
+            }
+
+            if (token.matches("\\d+")) {
+                g.add(new RecipesCommon.ComparableStack(ModItems.ammo_standard, 1, Integer.parseInt(token)).getStack().getItem());
+            } else {
+                String[] parts = token.split(":");
+
+                if (parts.length >= 3 && parts[0].equals("hbm") && parts[1].equals("ammo_secret")) {
+                    g.add(new RecipesCommon.ComparableStack(ModItems.ammo_secret, 1, Integer.parseInt(parts[2])).getStack().getItem());
+                }
+            }
         }
-        for (String raw : LSPECIALConfig.revolverList.split(",")) if (!raw.trim().isEmpty()) r.add(raw.trim());
+        for (String raw : LSPECIALConfig.revolverList.split(",")) {
+            if (!raw.trim().isEmpty()) r.add(raw.trim());
+        }
     }
 
     @SubscribeEvent
@@ -115,18 +132,24 @@ public class StatsLogic {
         inst.startBoards();
         inst.startScores(player);
 
-        if (heldStack.getItem() instanceof ItemGunBaseNT) applyGunWearPolicy(heldStack);
-        else { wearTrackedStack = null; previousObservedWear = Float.NaN; }
+        if (heldStack.getItem() instanceof ItemGunBaseNT) {
+            applyGunWearPolicy(heldStack);
+        } else {
+            wearTrackedStack = null; previousObservedWear = Float.NaN;
+        }
 
         // strength
         IAttributeInstance strength = player.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE);
+
         if (!heldStack.getAttributeModifiers(EntityEquipmentSlot.MAINHAND).get(SharedMonsterAttributes.ATTACK_DAMAGE.getName()).isEmpty()) {
             Collection<AttributeModifier> damageCollection = heldStack.getAttributeModifiers(EntityEquipmentSlot.MAINHAND).get(SharedMonsterAttributes.ATTACK_DAMAGE.getName());
 
             double damage = 1 + damageCollection.iterator().next().getAmount();
 
             strength.removeModifier(ATTACK_DAMAGE_UUID);
+
             double newDamage = damage + (LSPECIALConfig.strength ? expression(LSPECIALConfig.attackDamageFormula, "strength", inst.getStrengthScore().getScorePoints()) : 0);
+
             strength.applyModifier(new AttributeModifier(ATTACK_DAMAGE_UUID, nameIn, newDamage, 0));
         }
 
@@ -137,7 +160,9 @@ public class StatsLogic {
 
             maxHealth.removeModifier(MAX_HEALTH_UUID);
 
-            if (LSPECIALConfig.endurance) maxHealth.applyModifier(new AttributeModifier(MAX_HEALTH_UUID, nameIn, expression(LSPECIALConfig.enduranceFormula, "endurance", inst.getEnduranceScore().getScorePoints()), 0));
+            if (LSPECIALConfig.endurance) {
+                maxHealth.applyModifier(new AttributeModifier(MAX_HEALTH_UUID, nameIn, expression(LSPECIALConfig.enduranceFormula, "endurance", inst.getEnduranceScore().getScorePoints()), 0));
+            }
         }
 
         // charisma
@@ -149,8 +174,12 @@ public class StatsLogic {
             armor.removeModifier(ARMOR_UUID);
             armorToughness.removeModifier(ARMOR_TOUGHNESS_UUID);
 
-            if (LSPECIALConfig.charisma && LSPECIALConfig.charismaBonus) armor.applyModifier(new AttributeModifier(ARMOR_UUID, nameIn, expression(LSPECIALConfig.armorFormula, "charisma", inst.getCharismaScore().getScorePoints()), 0));
-            if (LSPECIALConfig.charisma && LSPECIALConfig.charismaBonus) armorToughness.applyModifier(new AttributeModifier(ARMOR_TOUGHNESS_UUID, nameIn, expression(LSPECIALConfig.armorToughnessFormula, "charisma", inst.getCharismaScore().getScorePoints()), 0));
+            if (LSPECIALConfig.charisma && LSPECIALConfig.charismaBonus) {
+                armor.applyModifier(new AttributeModifier(ARMOR_UUID, nameIn, expression(LSPECIALConfig.armorFormula, "charisma", inst.getCharismaScore().getScorePoints()), 0));
+            }
+            if (LSPECIALConfig.charisma && LSPECIALConfig.charismaBonus) {
+                armorToughness.applyModifier(new AttributeModifier(ARMOR_TOUGHNESS_UUID, nameIn, expression(LSPECIALConfig.armorToughnessFormula, "charisma", inst.getCharismaScore().getScorePoints()), 0));
+            }
         }
 
         // agility
@@ -181,8 +210,6 @@ public class StatsLogic {
             }*/
         }
         //originalFlySpeed = player.capabilities.getFlySpeed();
-
-       // LOGGER.info(player.capabilities.getFlySpeed());
 
         // perception, intelligence, and luck
         // todo make perception increase found loot, make luck reduce armor durability lose on chance
@@ -239,9 +266,7 @@ public class StatsLogic {
 
         if (!installedMagazine) {
             if (LSPECIALConfig.refundMagazines && LSPECIALConfig.luck && inst.getLuckScore().getScorePoints() > 0) { // if i have luck, install a magazine that can refund bullets
-                modifiedReceiver.mag(
-                        new RefundMagazine(originalMagazine)
-                );
+                modifiedReceiver.mag(new RefundMagazine(originalMagazine));
 
                 installedMagazine = true;
             }
@@ -251,10 +276,7 @@ public class StatsLogic {
     }
 
     private void processReceiver(Receiver recIn, float ogDmg, int ogDelay, ItemStack heldStackIn, EntityPlayer player) {
-        ItemGunBaseNT gun = (ItemGunBaseNT) heldStackIn.getItem();
-
         recIn.dmg((float) (ogDmg + (LSPECIALConfig.perception ? expression(LSPECIALConfig.perceptionGunDamageFormula, "perception", inst.getPerceptionScore().getScorePoints(), "originalDamage", (double)ogDmg) : 0)));
-        //LOGGER.info(recIn.getInnateSpread(heldStackIn));
 
         BulletConfig bC = (BulletConfig) recIn.getMagazine(heldStackIn).getType(heldStackIn, player.inventory);
         ItemStack ammoStack;
@@ -276,7 +298,6 @@ public class StatsLogic {
             int formula = (int)Math.round(expression(LSPECIALConfig.buckshotDelayFormula, "intelligence", intelligence, "originalDelay", (double)ogDelay));
             if (LSPECIALConfig.buckshotDelayNerf && (/*recIn.getRefireOnHold(heldStackIn) ||*/ isBuckshotAmmo(ammoStack))) { // automatic or loaded with buckshots (usually shotguns)
                 modifiedDelay = formula;
-                //LOGGER.info("setting a nerfed delay");
             }
         } else {
             modifiedDelay = 0;
@@ -371,47 +392,47 @@ public class StatsLogic {
         }
     }
 
-
-    /** Applies configurable wear reduction without depending on a compile-time HBM getter API. */
     private void applyGunWearPolicy(ItemStack stack) {
         String mode = LSPECIALConfig.gunWearMode;
-        if ("INFINITE_AT_INTELLIGENCE_5".equalsIgnoreCase(mode) || !LSPECIALConfig.intelligence) return;
+
+        if ("INFINITE_AT_INTELLIGENCE_5".equalsIgnoreCase(mode) || !LSPECIALConfig.intelligence) {
+            return;
+        }
+
         int intelligence = inst.getIntelligenceScore().getScorePoints();
-        if (intelligence <= 0) return;
-        try {
-            java.lang.reflect.Method getter = null;
-            for (java.lang.reflect.Method method : ItemGunBaseNT.class.getDeclaredMethods()) {
-                Class<?>[] params = method.getParameterTypes();
-                if (method.getName().equals("getWear") && java.lang.reflect.Modifier.isStatic(method.getModifiers())
-                        && params.length == 2 && params[0] == ItemStack.class && (params[1] == int.class || params[1] == Integer.class)) {
-                    getter = method; break;
-                }
+        if (intelligence <= 0) {
+            return;
+        }
+
+        float current = ItemGunBaseNT.getWear(stack, 0);
+
+        if (wearTrackedStack != stack || Float.isNaN(previousObservedWear)) {
+            wearTrackedStack = stack;
+            previousObservedWear = current;
+            return;
+        }
+
+        if (current > previousObservedWear) {
+            double reduction;
+
+            if ("PERCENT_REDUCTION".equalsIgnoreCase(mode)) {
+                reduction = intelligence * LSPECIALConfig.gunWearReductionPerIntelligence;
+            } else {
+                Map<String, Double> vars = new HashMap<>();
+                vars.put("intelligence", (double) intelligence);
+                vars.put("originalWear", (double) previousObservedWear);
+
+                reduction = LSPECIALExpression.eval(LSPECIALConfig.gunWearFormula, vars, 0.0);
             }
-            if (getter == null) {
-                if (!loggedWearApiWarning) { LOGGER.warn("Gun wear reduction is configured, but this HBM version does not expose ItemGunBaseNT.getWear(ItemStack, int); reduction is skipped."); loggedWearApiWarning = true; }
-                return;
-            }
-            getter.setAccessible(true);
-            Object result = getter.invoke(null, stack, 0);
-            if (!(result instanceof Number)) return;
-            float current = ((Number) result).floatValue();
-            if (wearTrackedStack != stack || Float.isNaN(previousObservedWear)) {
-                wearTrackedStack = stack; previousObservedWear = current; return;
-            }
-            if (current > previousObservedWear) {
-                double reduction;
-                if ("PERCENT_REDUCTION".equalsIgnoreCase(mode)) reduction = intelligence * LSPECIALConfig.gunWearReductionPerIntelligence;
-                else {
-                    Map<String, Double> vars = new HashMap<>(); vars.put("intelligence", (double) intelligence); vars.put("originalWear", (double) previousObservedWear);
-                    reduction = LSPECIALExpression.eval(LSPECIALConfig.gunWearFormula, vars, 0.0);
-                }
-                reduction = Math.max(0.0, Math.min(1.0, reduction));
-                float adjusted = (float) (previousObservedWear + (current - previousObservedWear) * (1.0 - reduction));
-                ItemGunBaseNT.setWear(stack, 0, adjusted);
-                previousObservedWear = adjusted;
-            } else previousObservedWear = current;
-        } catch (ReflectiveOperationException | RuntimeException ex) {
-            if (!loggedWearApiWarning) { LOGGER.warn("Could not apply configurable gun wear reduction; this HBM version may use a different wear API.", ex); loggedWearApiWarning = true; }
+
+            reduction = Math.max(0.0, Math.min(1.0, reduction));
+
+            float adjusted = (float) (previousObservedWear + (current - previousObservedWear) * (1.0 - reduction));
+
+            ItemGunBaseNT.setWear(stack, 0, adjusted);
+            previousObservedWear = adjusted;
+        } else {
+            previousObservedWear = current;
         }
     }
 
@@ -420,15 +441,24 @@ public class StatsLogic {
         for (String raw : LSPECIALConfig.buckshotGaugeList.split(",")) {
             String token = raw.trim();
             try {
-                if (token.matches("\\d+") && stack.getItem() == ModItems.ammo_standard && stack.getMetadata() == Integer.parseInt(token)) return true;
+                if (token.matches("\\d+") && stack.getItem() == ModItems.ammo_standard && stack.getMetadata() == Integer.parseInt(token)) {
+                    return true;
+                }
+
                 String[] p = token.split(":");
-                if (p.length == 3 && p[0].equals("hbm") && p[1].equals("ammo_secret") && stack.getItem() == ModItems.ammo_secret && stack.getMetadata() == Integer.parseInt(p[2])) return true;
+
+                if (p.length == 3 && p[0].equals("hbm") && p[1].equals("ammo_secret") && stack.getItem() == ModItems.ammo_secret && stack.getMetadata() == Integer.parseInt(p[2])) {
+                    return true;
+                }
             } catch (NumberFormatException ignored) { }
         }
         return false;
     }
 
-    private static double expression(String formula, String key, double value) { return expression(formula, key, value, null, 0); }
+    private static double expression(String formula, String key, double value) {
+        return expression(formula, key, value, null, 0);
+    }
+
     private static double expression(String formula, String key, double value, String key2, double value2) {
         Map<String, Double> vars = new HashMap<>(); vars.put(key, value); if (key2 != null) vars.put(key2, value2);
         return LSPECIALExpression.eval(formula, vars, value);
