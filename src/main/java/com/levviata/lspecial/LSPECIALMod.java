@@ -40,8 +40,6 @@ public class LSPECIALMod {
     /*@Mod.Instance
     private static LSPECIALMod inst;*/
 
-    //add main menu text "You are SPECIAL",
-
     public static KeyBinding toggleSpecial = new KeyBinding(
             "toggleSpecial",
             Keyboard.KEY_P,
@@ -62,6 +60,7 @@ public class LSPECIALMod {
         MinecraftForge.EVENT_BUS.register(new StatsLogic());
         MinecraftForge.EVENT_BUS.register(new SPECIALRenamer());
         MinecraftForge.EVENT_BUS.register(new GuiSPECIAL());
+        MinecraftForge.EVENT_BUS.register(new LSplashText());
 
         AMPLIFIED_REGENERATION.setRegistryName(Tags.MOD_ID, AMPLIFIED_REGENERATION_NAME);
 
