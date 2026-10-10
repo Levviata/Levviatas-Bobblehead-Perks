@@ -6,132 +6,269 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.levviata.lspecial.LSPECIALMod.toggleSpecial;
 import static com.levviata.lspecial.SPECIALScoreboard.inst;
 
 public class GuiSPECIAL extends GuiScreen {
 
+    private static final int AMBER = 0xFFFFC45A;
+    private static final int AMBER_BRIGHT = 0xFFFFD477;
+    private static final int AMBER_MUTED = 0xFFB98236;
+    private static final int PANEL = 0xE9000805;
+    private static final int PANEL_DARK = 0xD9000503;
+    private static final int ROW_HEIGHT = 22;
+
+    private final List<StatRow> rows = new ArrayList<>();
+
+    private int panelLeft;
+    private int panelTop;
+    private int panelWidth;
+    private int panelHeight;
+    private int selectedRow = -1;
+
+    private static final String[] FOOTER_MESSAGES = {
+            "YOU ARE SPECIAL",
+            "JET FUEL CAN MELT STEEL BEAMS",
+            "VAMPIRES ARE NICE",
+            "I KNOW WHERE YOU LIVE",
+            "LEVVIATAINC",
+            "WHO'S TIAMAT",
+            "SATAN IS A NICE GUY",
+            "WHO'S LEVIATHAN",
+            "WHEN YOU SEE IT",
+            "ITS ALL A DREAM AND YOU ARE BLIND",
+            "BLESSED ARE THE STRONG",
+            "CURSED ARE THE WEAK",
+            "BE OBEDIENT IF YOU ARE WEAK",
+            "CONTROL IF YOU ARE STRONG",
+            "NOT EVERYONE IS EQUAL",
+            "TAX THE CHURCHES",
+            "AI IS FREE SLAVERY"
+    };
+
+    private String footerMessage;
+
     @Override
-    public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-        int panelWidth = 240;
-        int rows = 0;
+    public void initGui() {
+        super.initGui();
+        rebuildRows();
+        footerMessage = FOOTER_MESSAGES[new java.util.Random().nextInt(FOOTER_MESSAGES.length)];
+    }
 
-        boolean[] enabledStats = {
-                LSPECIALConfig.strength,
-                LSPECIALConfig.perception,
-                LSPECIALConfig.endurance,
-                LSPECIALConfig.charisma,
-                LSPECIALConfig.intelligence,
-                LSPECIALConfig.agility,
-                LSPECIALConfig.luck
-        };
+    private void rebuildRows() {
+        rows.clear();
 
-        for (boolean enabled : enabledStats) {
-            if (enabled || !LSPECIALConfig.hideDisabledStats) {
-                rows++;
-            }
-        }
+        addStat("Strength", inst.getClientStrength(), LSPECIALConfig.strength,
+                "Strength represents physical power and contributes to melee damage.");
+        addStat("Perception", inst.getClientPerception(), LSPECIALConfig.perception,
+                "Perception affects awareness and related bonuses.");
+        addStat("Endurance", inst.getClientEndurance(), LSPECIALConfig.endurance,
+                "Endurance represents toughness and resilience.");
 
         if (LSPECIALConfig.enduranceBonus) {
-            rows++;
+            rows.add(new StatRow("Endurance Bonus", inst.getClientEnduranceBonus(), true, "Shows whether the Endurance perk bonus is active."));
         }
+
+        addStat("Charisma", inst.getClientCharisma(), LSPECIALConfig.charisma, "Charisma represents social influence and related bonuses.");
 
         if (LSPECIALConfig.charismaBonus) {
-            rows++;
+            rows.add(new StatRow("Charisma Bonus", inst.getClientCharismaBonus(), true, "Shows whether the Charisma perk bonus is active."));
         }
+
+        addStat("Intelligence", inst.getClientIntelligence(), LSPECIALConfig.intelligence, "Intelligence represents mental acuity and related bonuses.");
+        addStat("Agility", inst.getClientAgility(), LSPECIALConfig.agility, "Agility represents speed and dexterity.");
+        addStat("Luck", inst.getClientLuck(), LSPECIALConfig.luck, "Luck represents fortune and influences luck-based effects.");
 
         if (LSPECIALConfig.statLimit) {
-            rows++;
-        }
-
-        int panelHeight = Math.max(40, 20 + rows * 15);
-        int x = (this.width - panelWidth) / 2;
-        int y = (this.height - panelHeight) / 2;
-
-        drawRect(x, y, x + panelWidth, y + panelHeight, 0xFF000000);
-
-        int textY = y + 10;
-
-        drawStat("Strength", inst.getClientStrength(), LSPECIALConfig.strength, x, textY);
-        if (LSPECIALConfig.strength || !LSPECIALConfig.hideDisabledStats) {
-            textY += 15;
-        }
-
-        drawStat("Perception", inst.getClientPerception(), LSPECIALConfig.perception, x, textY);
-        if (LSPECIALConfig.perception || !LSPECIALConfig.hideDisabledStats) {
-            textY += 15;
-        }
-
-        drawStat("Endurance", inst.getClientEndurance(), LSPECIALConfig.endurance, x, textY);
-        if (LSPECIALConfig.endurance || !LSPECIALConfig.hideDisabledStats) {
-            textY += 15;
-        }
-
-        if (LSPECIALConfig.enduranceBonus) {
-            drawString(
-                    fontRenderer,
-                    "Endurance Bonus: " + (inst.getClientEnduranceBonus() == 1),
-                    x + 10,
-                    textY,
-                    0xFFFFFFFF
-            );
-            textY += 15;
-        }
-
-        drawStat("Charisma", inst.getClientCharisma(), LSPECIALConfig.charisma, x, textY);
-        if (LSPECIALConfig.charisma || !LSPECIALConfig.hideDisabledStats) {
-            textY += 15;
-        }
-
-        if (LSPECIALConfig.charismaBonus) {
-            drawString(
-                    fontRenderer,
-                    "Charisma Bonus: " + (inst.getClientCharismaBonus() == 1),
-                    x + 10,
-                    textY,
-                    0xFFFFFFFF
-            );
-            textY += 15;
-        }
-
-        drawStat("Intelligence", inst.getClientIntelligence(), LSPECIALConfig.intelligence, x, textY);
-        if (LSPECIALConfig.intelligence || !LSPECIALConfig.hideDisabledStats) {
-            textY += 15;
-        }
-
-        drawStat("Agility", inst.getClientAgility(), LSPECIALConfig.agility, x, textY);
-        if (LSPECIALConfig.agility || !LSPECIALConfig.hideDisabledStats) {
-            textY += 15;
-        }
-
-        drawStat("Luck", inst.getClientLuck(), LSPECIALConfig.luck, x, textY);
-        if (LSPECIALConfig.luck || !LSPECIALConfig.hideDisabledStats) {
-            textY += 15;
-        }
-
-        if (LSPECIALConfig.statLimit) {
-            drawString(
-                    fontRenderer,
-                    "Stat Limit: " + inst.getClientLimit(),
-                    x + 10,
-                    textY,
-                    0xFFFFFFFF
-            );
+            rows.add(new StatRow("Stat Limit", inst.getClientLimit(), true, "The current maximum value allowed for each SPECIAL stat."));
         }
     }
 
-    private void drawStat(String name, int value, boolean enabled, int x, int y) {
-        if (!enabled && LSPECIALConfig.hideDisabledStats) {
-            return;
+    private void addStat(String name, int value, boolean enabled, String description) {
+        if (enabled || !LSPECIALConfig.hideDisabledStats) {
+            rows.add(new StatRow(name, value, enabled, description));
+        }
+    }
+
+    @Override
+    public void drawScreen(int mouseX, int mouseY, float partialTicks) {
+        drawDefaultBackground();
+        rebuildRows();
+
+        panelWidth = Math.min(620, width - 24);
+        panelHeight = Math.min(height - 28, Math.max(250, 104 + rows.size() * ROW_HEIGHT));
+        panelLeft = (width - panelWidth) / 2;
+        panelTop = (height - panelHeight) / 2;
+
+        drawBackdrop();
+        drawFrame();
+        drawHeader();
+        drawStatList(mouseX, mouseY);
+        drawInformationPanel();
+        drawFooter();
+
+        super.drawScreen(mouseX, mouseY, partialTicks);
+    }
+
+    private void drawBackdrop() {
+        drawRect(0, 0, width, height, 0x55000000);
+
+        for (int y = 0; y < height; y += 4) {
+            drawRect(0, y, width, y + 1, 0x10000000);
         }
 
-        String text = name + ": " + value;
+        drawRect(panelLeft, panelTop, panelLeft + panelWidth, panelTop + panelHeight, PANEL);
+        drawRect(panelLeft + 3, panelTop + 3, panelLeft + panelWidth - 3, panelTop + panelHeight - 3, PANEL_DARK);
+    }
 
-        if (!enabled) {
-            text = "§m" + text + "§r";
+    private void drawFrame() {
+        int right = panelLeft + panelWidth;
+        int bottom = panelTop + panelHeight;
+
+        drawRect(panelLeft, panelTop, right, panelTop + 1, AMBER_MUTED);
+        drawRect(panelLeft, bottom - 1, right, bottom, AMBER_MUTED);
+        drawRect(panelLeft, panelTop, panelLeft + 1, bottom, AMBER_MUTED);
+        drawRect(right - 1, panelTop, right, bottom, AMBER_MUTED);
+
+        drawRect(panelLeft + 22, panelTop, panelLeft + 238, panelTop + 2, PANEL);
+    }
+
+    private void drawHeader() {
+        drawString(fontRenderer, "SPECIAL // CHARACTER STATS", panelLeft + 22, panelTop + 12, AMBER_BRIGHT);
+
+        String brand = "LSPECIAL";
+        drawString(fontRenderer, brand, panelLeft + panelWidth - fontRenderer.getStringWidth(brand) - 18, panelTop + 13, AMBER_MUTED);
+
+        drawRect(panelLeft + 18, panelTop + 30, panelLeft + panelWidth - 18, panelTop + 31, AMBER_MUTED);
+    }
+
+    private void drawStatList(int mouseX, int mouseY) {
+        int listLeft = panelLeft + 18;
+        int listTop = panelTop + 42;
+        int listWidth = Math.min(270, panelWidth / 2 - 22);
+
+        drawString(fontRenderer, "STATS", listLeft + 8, listTop, AMBER_MUTED);
+        drawString(fontRenderer, "VALUE", listLeft + listWidth - 48, listTop, AMBER_MUTED);
+
+        int rowTop = listTop + 17;
+        selectedRow = -1;
+
+        for (int i = 0; i < rows.size(); i++) {
+            StatRow row = rows.get(i);
+            int y = rowTop + i * ROW_HEIGHT;
+
+            if (y + ROW_HEIGHT > panelTop + panelHeight - 35) {
+                break;
+            }
+
+            boolean hovered = mouseX >= listLeft && mouseX < listLeft + listWidth
+                    && mouseY >= y && mouseY < y + ROW_HEIGHT;
+
+            if (hovered) {
+                selectedRow = i;
+                drawRect(listLeft, y - 2, listLeft + listWidth, y + ROW_HEIGHT - 3,
+                        0x553F2A0C);
+                drawRect(listLeft, y - 2, listLeft + 2, y + ROW_HEIGHT - 3, AMBER);
+            }
+
+            int color = hovered ? AMBER_BRIGHT : (row.enabled ? AMBER : AMBER_MUTED);
+            String label = row.enabled ? row.name : "\u00a7m" + row.name + "\u00a7r";
+            drawString(fontRenderer, label, listLeft + 9, y + 4, color);
+
+            String value = Integer.toString(row.value);
+            drawString(fontRenderer, value, listLeft + listWidth - 42, y + 4, color);
+
+            int arrowX = listLeft + listWidth - 18;
+            drawRect(arrowX, y + 4, arrowX + 11, y + 15, AMBER_MUTED);
+            drawRect(arrowX + 1, y + 5, arrowX + 10, y + 14, PANEL);
+            drawString(fontRenderer, ">", arrowX + 2, y + 3, color);
         }
 
-        drawString(fontRenderer, text, x + 10, y, 0xFFFFFFFF);
+        int dividerX = panelLeft + panelWidth / 2 - 2;
+        drawRect(dividerX, panelTop + 42, dividerX + 1,
+                panelTop + panelHeight - 28, 0xFF62451F);
+    }
+
+    private void drawInformationPanel() {
+        int infoLeft = panelLeft + panelWidth / 2 + 12;
+        int infoTop = panelTop + 48;
+        int infoRight = panelLeft + panelWidth - 18;
+        int infoWidth = infoRight - infoLeft;
+
+        drawString(fontRenderer, "NOTES", infoLeft + 8, infoTop, AMBER_MUTED);
+        drawRect(infoLeft, infoTop + 17, infoRight, infoTop + 18, AMBER_MUTED);
+
+        String heading = selectedRow >= 0 && selectedRow < rows.size()
+                ? rows.get(selectedRow).name.toUpperCase()
+                : "S.P.E.C.I.A.L.";
+        drawString(fontRenderer, heading, infoLeft + 8, infoTop + 29, AMBER_BRIGHT);
+
+        String description = selectedRow >= 0 && selectedRow < rows.size()
+                ? rows.get(selectedRow).description
+                : "Select a stat to see what it does.";
+
+        drawWrappedText(description, infoLeft + 8, infoTop + 49,
+                Math.max(90, infoWidth - 16), AMBER);
+
+        int statusY = panelTop + panelHeight - 67;
+        drawRect(infoLeft, statusY, infoRight, statusY + 1, AMBER_MUTED);
+        drawString(fontRenderer, "SYSTEM STATUS", infoLeft + 8, statusY + 9, AMBER_MUTED);
+        drawString(fontRenderer, "LEVVIATA NEURA-LINK  //  ACTIVE",
+                infoLeft + 8, statusY + 24, AMBER);
+    }
+
+    private void drawWrappedText(String text, int x, int y, int maxWidth, int color) {
+        StringBuilder line = new StringBuilder();
+        int currentY = y;
+
+        for (String word : text.split(" ")) {
+            String candidate = line.length() == 0 ? word : line + " " + word;
+
+            if (fontRenderer.getStringWidth(candidate) > maxWidth && line.length() > 0) {
+                drawString(fontRenderer, line.toString(), x, currentY, color);
+                currentY += 12;
+                line.setLength(0);
+                line.append(word);
+            } else {
+                if (line.length() > 0) {
+                    line.append(' ');
+                }
+                line.append(word);
+            }
+        }
+
+        if (line.length() > 0) {
+            drawString(fontRenderer, line.toString(), x, currentY, color);
+        }
+    }
+
+    private void drawFooter() {
+        int footerY = panelTop + panelHeight - 23;
+        drawRect(panelLeft + 18, footerY - 5, panelLeft + panelWidth - 18, footerY - 4, AMBER_MUTED);
+
+        // randomized footer
+        drawString(fontRenderer, "LSPECIAL  /  " + footerMessage, panelLeft + 22, footerY + 2, AMBER_MUTED);
+
+        String hint = "PRESS KEY " + toggleSpecial.getKeyCode() + " TO CLOSE";
+
+        drawString(fontRenderer, hint, panelLeft + panelWidth - fontRenderer.getStringWidth(hint) - 22, footerY + 2, AMBER);
+    }
+
+    private static final class StatRow {
+        private final String name;
+        private final int value;
+        private final boolean enabled;
+        private final String description;
+
+        private StatRow(String name, int value, boolean enabled, String description) {
+            this.name = name;
+            this.value = value;
+            this.enabled = enabled;
+            this.description = description;
+        }
     }
 
     @Override
