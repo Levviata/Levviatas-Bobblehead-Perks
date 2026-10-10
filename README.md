@@ -1,3 +1,1 @@
-todo
-
-remove mixin cfgs
+extensive config system implementation
