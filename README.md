@@ -14,7 +14,7 @@ Consume Nuclear Tech's bobbleheads with crouch right-click to get SPECIAL and pe
   - Luck, chance to refund a magazine on reload
 - Bobbleheads renamed, now have their stats on their display name
 - Extensive configuration, modify literally anything. Includes advanced modification of any stat's logic
-- Bobblehead recipes to reduce grinding, with any non-fallout bobblehead and ingredients
-- Stat GUI on press key P
+- Bobblehead recipes to reduce grinding, with any non-fallout bobblehead and ingredients. Also configurable
+- SPECIAL Stat GUI on press key P
 
 <img width="2560" height="1377" alt="2026-10-11_00 11 42" src="https://github.com/user-attachments/assets/b769bc49-d7af-4a67-9cef-cdf6f37021cf" />
