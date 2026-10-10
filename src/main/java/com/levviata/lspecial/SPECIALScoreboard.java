@@ -50,6 +50,9 @@ public class SPECIALScoreboard {
         if (scoreboard.getObjective(LUCK_BOARD) == null) {
             scoreboard.addScoreObjective(LUCK_BOARD, IScoreCriteria.DUMMY);
         }
+        if (scoreboard.getObjective(LIMIT_BOARD) == null) {
+            scoreboard.addScoreObjective(LIMIT_BOARD, IScoreCriteria.DUMMY);
+        }
     }
 
     private Score strengthScore;
@@ -94,9 +97,11 @@ public class SPECIALScoreboard {
         intelligenceScore = scoreboard.getOrCreateScore(player.getName(), objIntelligence);
         agilityScore = scoreboard.getOrCreateScore(player.getName(), objAgility);
         luckScore = scoreboard.getOrCreateScore(player.getName(), objLuck);
-        limitScore = scoreboard.getOrCreateScore(player.getName(), objLimit);
-        if (limitScore.getScorePoints() == 0) {
+        if (!scoreboard.entityHasObjective(player.getName(), objLimit)) {
+            limitScore = scoreboard.getOrCreateScore(player.getName(), objLimit);
             limitScore.setScorePoints(10);
+        } else {
+            limitScore = scoreboard.getOrCreateScore(player.getName(), objLimit);
         }
     }
 
