@@ -9,7 +9,9 @@ import com.levviata.lspecial.proxy.CommonProxy;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.potion.Potion;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
@@ -48,7 +50,6 @@ public class LSPECIALMod {
 
     public static final Potion AMPLIFIED_REGENERATION = new PotionAmplifiedRegeneration();
 
-
     /**
      * <a href="https://cleanroommc.com/wiki/forge-mod-development/event#overview">
      *     Take a look at how many FMLStateEvents you can listen to via the @Mod.EventHandler annotation here
@@ -61,6 +62,7 @@ public class LSPECIALMod {
         MinecraftForge.EVENT_BUS.register(new SPECIALRenamer());
         MinecraftForge.EVENT_BUS.register(new GuiSPECIAL());
         MinecraftForge.EVENT_BUS.register(new LSplashText());
+        MinecraftForge.EVENT_BUS.register(new BobbleheadRecipeManager());
 
         AMPLIFIED_REGENERATION.setRegistryName(Tags.MOD_ID, AMPLIFIED_REGENERATION_NAME);
 
