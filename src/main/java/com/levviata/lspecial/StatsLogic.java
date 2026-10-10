@@ -28,24 +28,16 @@ public class StatsLogic {
     // todo add uuid getter helper from attribute modifier
     //vanilla uuids
     private static final UUID ATTACK_DAMAGE_UUID = UUID.fromString("CB3F55D3-645C-4F38-A497-9C13A33DB5CF");
-    private static final UUID ATTACK_SPEED_UUID = UUID.fromString("FA233E1C-4180-4865-B01B-BCCE9785ACA3");
+    //private static final UUID ATTACK_SPEED_UUID = UUID.fromString("FA233E1C-4180-4865-B01B-BCCE9785ACA3");
     // randomized uuids, same UUIDs as my mod Attribute Modifier
-    private static final UUID MAX_HEALTH_UUID =
-            UUID.fromString("5b94c2f0-6a6e-4b7d-9f6f-8d2a4d7c1e01");
-    private static final UUID FOLLOW_RANGE_UUID =
-            UUID.fromString("7d31a6c2-15bb-47d5-aef5-3c94a87f3202");
-    private static final UUID KNOCKBACK_RESISTANCE_UUID =
-            UUID.fromString("93ef45e8-12c0-4f17-8c3e-61d2a94b5f03");
-    private static final UUID MOVEMENT_SPEED_UUID =
-            UUID.fromString("b7d3a6f9-58d4-4b2f-a0f7-9c13e4d8a904");
-    private static final UUID FLYING_SPEED_UUID =
-            UUID.fromString("d2f9c781-7b48-4c81-93ae-0d7f2b6e1505");
-    private static final UUID ARMOR_UUID =
-            UUID.fromString("e5a14d92-4f33-4d0f-b1ce-7a8d0f2c3606");
-    private static final UUID ARMOR_TOUGHNESS_UUID =
-            UUID.fromString("f84c7b13-2d75-4d8b-9ef4-4b0a91d54707");
-    private static final UUID LUCK_UUID =
-            UUID.fromString("18b4f6d0-8ec1-4cba-a57e-52d6f83a7808");
+    private static final UUID MAX_HEALTH_UUID = UUID.fromString("5b94c2f0-6a6e-4b7d-9f6f-8d2a4d7c1e01");
+    //private static final UUID FOLLOW_RANGE_UUID =UUID.fromString("7d31a6c2-15bb-47d5-aef5-3c94a87f3202");
+    //private static final UUID KNOCKBACK_RESISTANCE_UUID =UUID.fromString("93ef45e8-12c0-4f17-8c3e-61d2a94b5f03");
+    private static final UUID MOVEMENT_SPEED_UUID = UUID.fromString("b7d3a6f9-58d4-4b2f-a0f7-9c13e4d8a904");
+    //private static final UUID FLYING_SPEED_UUID = UUID.fromString("d2f9c781-7b48-4c81-93ae-0d7f2b6e1505");
+    private static final UUID ARMOR_UUID = UUID.fromString("e5a14d92-4f33-4d0f-b1ce-7a8d0f2c3606");
+    private static final UUID ARMOR_TOUGHNESS_UUID = UUID.fromString("f84c7b13-2d75-4d8b-9ef4-4b0a91d54707");
+    //private static final UUID LUCK_UUID = UUID.fromString("18b4f6d0-8ec1-4cba-a57e-52d6f83a7808");
     private static final String nameIn = "Lev Attribute Modifier";
 
     private int previousHealth = -1;
@@ -373,15 +365,15 @@ public class StatsLogic {
     public static List<UUID> getUUIDs() {
         if (uuids.isEmpty()) {
             uuids.add(ATTACK_DAMAGE_UUID);
-            uuids.add(ATTACK_SPEED_UUID);
+            //uuids.add(ATTACK_SPEED_UUID);
             uuids.add(MAX_HEALTH_UUID);
-            uuids.add(FOLLOW_RANGE_UUID);
-            uuids.add(KNOCKBACK_RESISTANCE_UUID);
+            //uuids.add(FOLLOW_RANGE_UUID);
+            //uuids.add(KNOCKBACK_RESISTANCE_UUID);
             uuids.add(MOVEMENT_SPEED_UUID);
-            uuids.add(FLYING_SPEED_UUID);
+            //uuids.add(FLYING_SPEED_UUID);
             uuids.add(ARMOR_UUID);
             uuids.add(ARMOR_TOUGHNESS_UUID);
-            uuids.add(LUCK_UUID);
+           // uuids.add(LUCK_UUID);
         }
         return uuids;
     }
