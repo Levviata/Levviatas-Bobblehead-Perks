@@ -76,8 +76,11 @@ public class RefundMagazine implements IMagazine<BulletConfig> {
             return;
         }
 
-        boolean refundAmmo = Math.random() <
-                Math.min(inst.getLuckScore().getScorePoints() * 0.05, 0.5);
+        int luck = LSPECIALConfig.luck ? inst.getLuckScore().getScorePoints() : 0;
+        Map<String, Double> vars = new HashMap<>();
+        vars.put("luck", (double)luck);
+        double chance = LSPECIALExpression.eval(LSPECIALConfig.refundAmmoFormula, vars, Math.min(luck * 0.05, 0.5));
+        boolean refundAmmo = Math.random() < Math.max(0.0, Math.min(1.0, chance));
 
         if (!refundAmmo) {
             return;

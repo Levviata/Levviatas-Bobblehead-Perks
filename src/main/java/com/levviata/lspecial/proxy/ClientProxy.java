@@ -18,7 +18,7 @@ public class ClientProxy extends CommonProxy { // client only
     @Override
     public void preInit(FMLPreInitializationEvent event) {
         super.preInit(event);
-        ClientRegistry.registerKeyBinding(toggleSpecial);
+        if (com.levviata.lspecial.LSPECIALConfig.toggleSpecial) ClientRegistry.registerKeyBinding(toggleSpecial);
         LSPECIALMod.NETWORK.registerMessage(SyncSPECIALStatsSetter.class, SyncSPECIALStatsPacket.class, 1, Side.CLIENT);
     }
 

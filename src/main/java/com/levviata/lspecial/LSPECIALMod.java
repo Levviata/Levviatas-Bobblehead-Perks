@@ -28,7 +28,7 @@ import org.lwjgl.input.Keyboard;
 import static com.levviata.lspecial.SPECIALScoreboard.inst;
 import static com.levviata.lspecial.potion.PotionAmplifiedRegeneration.AMPLIFIED_REGENERATION_NAME;
 
-@Mod(modid = Tags.MOD_ID, name = Tags.MOD_NAME, version = Tags.VERSION)
+@Mod(modid = Tags.MOD_ID, name = Tags.MOD_NAME, version = Tags.VERSION, guiFactory = "com.levviata.lspecial.LSPECIALGuiFactory")
 public class LSPECIALMod {
 
     // todo: recipes to reduce grinding
@@ -58,6 +58,7 @@ public class LSPECIALMod {
      */
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
+        LSPECIALConfig.init(event.getSuggestedConfigurationFile());
         MinecraftForge.EVENT_BUS.register(new BobbleheadUse());
         MinecraftForge.EVENT_BUS.register(new StatsLogic());
         MinecraftForge.EVENT_BUS.register(new SPECIALRenamer());
@@ -82,8 +83,8 @@ public class LSPECIALMod {
 
     @Mod.EventHandler
     public void serverStarting(FMLServerStartingEvent event) {
-        event.registerServerCommand(new CommandSetSpeed());
-        event.registerServerCommand(new CommandSetFlySpeed());
+        if (LSPECIALConfig.setSpeedCommand) event.registerServerCommand(new CommandSetSpeed());
+        if (LSPECIALConfig.setFlySpeedCommand) event.registerServerCommand(new CommandSetFlySpeed());
     }
 
     public static void syncStats(EntityPlayerMP player) {

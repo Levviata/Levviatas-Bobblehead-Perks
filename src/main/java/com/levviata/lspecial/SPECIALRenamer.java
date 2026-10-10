@@ -10,6 +10,7 @@ import java.util.Objects;
 public class SPECIALRenamer {
     @SubscribeEvent
     public void onTooltip(ItemTooltipEvent event) {
+        if (!LSPECIALConfig.bobbleheadRename) return;
         ItemStack stack = event.getItemStack();
 
         if (stack.getItem() == Objects.requireNonNull(Item.getByNameOrId("hbm:bobblehead"))) {
